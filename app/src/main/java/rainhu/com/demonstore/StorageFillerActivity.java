@@ -6,11 +6,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -59,37 +61,55 @@ public class StorageFillerActivity extends Activity implements View.OnClickListe
                 new FillTask().execute();
                 break;
             case R.id.storageFiller_clear:
+                new ClearTask().execute();
                 break;
             default:
                 break;
         }
     }
 
-    private  class FillTask  extends AsyncTask<Void,Integer,Boolean>{
+
+
+    public long getEditTextData(){
+        return Long.parseLong(mEditText.getText().toString());
+    }
+
+    private  class FillTask extends AsyncTask<Void,Integer,Boolean>{
 
         @Override
         protected void onPreExecute() {
             mShowProcess.setText("Loading ...");
-
         }
 
 
         @Override
         protected Boolean doInBackground(Void... params) {
             //String data = mEditText.get
+
+            long expectSize = getEditTextData();
+
             char[] arrayOfChar = new char[one_MB];
             FileWriter localFileWriter = null;
+            File file = new File(StorageFillerActivity.this.getFilesDir() + File.separator + StorageFillerActivity.this.FILENAME);
+            if(!file.exists()){
+                try {
+                    file.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
             try {
                 localFileWriter = new FileWriter(StorageFillerActivity.this.getFilesDir() + File.separator + StorageFillerActivity.this.FILENAME, true);
-
-            localFileWriter.write(arrayOfChar);
-            localFileWriter.close();
-
+                for  (int i = 0; i< expectSize ; i++) {
+                    localFileWriter.write(arrayOfChar);
+                    publishProgress( (int) (i * 100 / expectSize) );
+                }
+                localFileWriter.flush();
+                localFileWriter.close();
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
 
 
             return null;
@@ -97,6 +117,7 @@ public class StorageFillerActivity extends Activity implements View.OnClickListe
 
         @Override
         protected void onProgressUpdate(Integer... values) {
+            Log.i("zhengyu","values:"+values[0]);
             mProgressBar.setProgress(values[0]);
 
         }
@@ -108,6 +129,45 @@ public class StorageFillerActivity extends Activity implements View.OnClickListe
     }
 
 
+    private class ClearTask extends AsyncTask<Void,Integer,Boolean>{
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+
+
+            long expectSize = getEditTextData();
+
+            FileWriter localFileWriter = null;
+            File file = new File(StorageFillerActivity.this.getFilesDir() + File.separator + StorageFillerActivity.this.FILENAME);
+            if(!file.exists()){
+                try {
+                    file.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            long length = file.length() / 1024 / 1024;
+             Log.i("zhengyu","file Length:"+length+" clearSize:"+expectSize);
+            try {
+            localFileWriter = new FileWriter(StorageFillerActivity.this.getFilesDir() + File.separator + StorageFillerActivity.this.FILENAME, true);
+
+            if(expectSize >= length){
+                localFileWriter.write("");
+                Toast.makeText(mContext,"All Clear !!! ",Toast.LENGTH_SHORT).show();
+            }else {
+
+
+
+            }
+                localFileWriter.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            return null;
+        }
+    }
 
     /*
     private void initProcessDialog(){
