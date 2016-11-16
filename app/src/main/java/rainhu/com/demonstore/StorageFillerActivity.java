@@ -3,6 +3,7 @@ package rainhu.com.demonstore;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StatFs;
@@ -16,6 +17,9 @@ import android.widget.TextView;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by hu on 16-11-6.
@@ -46,6 +50,10 @@ public class StorageFillerActivity extends Activity implements View.OnClickListe
 
     private StatFs mDataFileStats;
 
+    private SharedPreferences mSharedPreferences;
+
+    private Map<String, Long> mFileMap;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,12 +79,16 @@ public class StorageFillerActivity extends Activity implements View.OnClickListe
         mTotalStorage.setText("Total : "+ mDataFileStats.getTotalBytes()/1024/1024 + " MB");
         //mFreeStorage.setText("Free : " + mDataFileStats.getAvailableBlocksLong()/1024/1024 + " MB");
 
+        mSharedPreferences =  mContext.getSharedPreferences("sp",MODE_PRIVATE);
+
+
     }
 
 
     @Override
     protected void onResume() {
         super.onResume();
+        mFileMap = (Map<String, Long>) mSharedPreferences.getAll();
 
         restateDataDir();
     }
@@ -130,13 +142,14 @@ public class StorageFillerActivity extends Activity implements View.OnClickListe
             //String data = mEditText.get
             long expectSize = getEditTextData();
 
+             int count = mFileMap.size();
 
             if(params[0] == 0) { //FillStorage
 
 
                 char[] arrayOfChar = new char[one_MB];
                 FileWriter localFileWriter = null;
-                String fileName = StorageFillerActivity.this.getFilesDir() + File.separator + StorageFillerActivity.this.FILENAME;
+                String fileName = StorageFillerActivity.this.getFilesDir() + File.separator + StorageFillerActivity.this.FILENAME+ (++count);
                 Log.i("zhengyu","filename:"+fileName);
                 ///data/user/0/rainhu.com.demonstore/files/mess.txt
                 File file = new File(fileName);
@@ -160,14 +173,76 @@ public class StorageFillerActivity extends Activity implements View.OnClickListe
                     e.printStackTrace();
                 }
 
-            }else if (params[0] == 2){  //clear all
+                SharedPreferences.Editor editor = mSharedPreferences.edit();
+                editor.putLong(fileName,expectSize);
+                editor.commit();
+
+            }else if(params[0] == 1){
+                Set set = mFileMap.entrySet();
+                Iterator it = set.iterator();
+
+                File targetFile = null;
+                Long smallestFitableFileSize = Long.MAX_VALUE;
+
+                //选出最合适替换的文件
+                while (it.hasNext()) {
+                    Map.Entry tmpentry = (Map.Entry) it.next();
+                    File tmpFile = new File((String) tmpentry.getKey());
+                    Long tmpFileSize = (Long) tmpentry.getValue();
+                    if(tmpFileSize > expectSize && tmpFileSize < smallestFitableFileSize ){
+                        targetFile = tmpFile;
+                        smallestFitableFileSize = tmpFileSize;
+                    }
+
+                }
+
+                if(targetFile == null){
+                    //该软件没有生成过任何比目标清理更大的文件，不执行清理
+                    Log.i("zhengyu","not clear");
+                    return null;
+                }
+                try {
+                    FileWriter fileWiter = new FileWriter(targetFile);
+                    //覆盖填充差值
+                    Log.i("zhengyu","tartFile : "+targetFile.getName()+" smallestFitableFileSize : "+smallestFitableFileSize+" expectSize : "+expectSize);
+                    char[] arrayOfChar = new char[one_MB];
+                    for (int i = 0; i < smallestFitableFileSize - expectSize; i++) {
+                        fileWiter.write(arrayOfChar);
+                        publishProgress((int) (i * 100 / (smallestFitableFileSize - expectSize)));
+                    }
+                    fileWiter.flush();
+                    fileWiter.close();
+                    SharedPreferences.Editor editor = mSharedPreferences.edit();
+                    editor.putLong(targetFile.getAbsolutePath(),(smallestFitableFileSize - expectSize));
+                    editor.commit();
+                    
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }else if (params[0] == 2) {  //clear all
+                Set set = mFileMap.entrySet();
+                Iterator it = set.iterator();
+                while (it.hasNext()) {
+                    Map.Entry tmpentry = (Map.Entry) it.next();
+                    File file = new File((String) tmpentry.getKey());
+                    try {
+                        FileWriter fileWriter = new FileWriter(file);
+                        fileWriter.write("");
+                        fileWriter.flush();
+                        fileWriter.close();
 
 
-
-
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                SharedPreferences.Editor editor = mSharedPreferences.edit();
+                editor.clear();
+                editor.commit();
 
             }
-
+            mFileMap = (Map<String, Long>) mSharedPreferences.getAll();
             return null;
         }
 
