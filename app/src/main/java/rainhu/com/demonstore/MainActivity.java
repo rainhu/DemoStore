@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import rainhu.com.demonstore.activity.AnimationActivity;
 import rainhu.com.demonstore.activity.MediaDemoActivity;
 import rainhu.com.demonstore.activity.StorageFillerActivity;
 
@@ -13,6 +14,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Button storageFillerBtn;
     private Button mediaDemoBtn;
+    private Button animationBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,6 +25,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mediaDemoBtn = (Button) findViewById(R.id.mediaDemoBtn);
         mediaDemoBtn.setOnClickListener(this);
+
+        animationBtn = (Button) findViewById(R.id.animationBtn);
+        animationBtn.setOnClickListener(this);
     }
 
     @Override
@@ -34,6 +39,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.mediaDemoBtn:
                 startActivity(new Intent(this,MediaDemoActivity.class));
+                break;
+            case R.id.animationBtn:
+                startActivity(new Intent(this, AnimationActivity.class));
                 break;
             default:
                 break;

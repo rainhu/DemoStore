@@ -21,6 +21,8 @@
         <activity android:name=".activity.StorageFillerActivity"/>
 
         <activity android:name=".activity.MediaDemoActivity"/>
+
+        <activity android:name=".activity.AnimationActivity"/>
     </application>
 
 </manifest>
