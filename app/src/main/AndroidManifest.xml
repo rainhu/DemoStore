@@ -6,7 +6,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/d_icon1"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
@@ -18,7 +18,9 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".StorageFillerActivity"/>
+        <activity android:name=".activity.StorageFillerActivity"/>
+
+        <activity android:name=".activity.MediaDemoActivity"/>
     </application>
 
 </manifest>

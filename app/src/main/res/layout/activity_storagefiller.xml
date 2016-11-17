@@ -7,15 +7,14 @@
             android:id="@+id/totalStorage"
             android:layout_width="wrap_content"
             android:layout_height="50dp"
-            android:layout_marginRight="20dp"/>
+            android:layout_marginRight="10dp"/>
         <TextView
             android:id="@+id/freeStorage"
             android:layout_width="wrap_content"
             android:layout_height="50dp" />
 
-
-
-    <LinearLayout  android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
         <EditText
@@ -28,7 +27,8 @@
             android:layout_height="50dp" />
      </LinearLayout>
 
-    <LinearLayout  android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content">
     <Button
         android:id="@+id/storageFiller_fill"
@@ -40,12 +40,13 @@
         android:id="@+id/storageFiller_clear"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginRight="20dp"
         android:text="@string/clear"/>
-        <Button
+     <Button
             android:id="@+id/storageFiller_clearAll"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginRight="20dp"
+
             android:text="clearAll"/>
     </LinearLayout>
 
@@ -66,4 +67,10 @@
             android:layout_height="wrap_content"/>
     </ScrollView>
 
+    <Button
+        android:id="@+id/storageFiller_cancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="cancle"/>
 </LinearLayout>
