@@ -12,6 +12,7 @@ import rainhu.com.demonstore.activity.AnimationActivity;
 import rainhu.com.demonstore.activity.MediaDemoActivity;
 import rainhu.com.demonstore.activity.StorageFillerActivity;
 import rainhu.com.demonstore.activity.TempDemoActivity;
+import rainhu.com.demonstore.activity.ThreadDemoActivity;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
@@ -19,6 +20,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button mediaDemoBtn;
     private Button animationBtn;
     private Button tmpDemoBtn;
+    private Button threadBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +37,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         tmpDemoBtn = (Button) findViewById(R.id.tempBtn);
         tmpDemoBtn.setOnClickListener(this);
+
+        threadBtn = (Button) findViewById(R.id.threadBtn);
+        threadBtn.setOnClickListener(this);
     }
 
     @Override
@@ -59,6 +64,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.tempBtn:
                 startActivity(new Intent(this, TempDemoActivity.class));
                 break;
+            case R.id.threadBtn:
+                startActivity(new Intent(this, ThreadDemoActivity.class));
             default:
                 break;
         }

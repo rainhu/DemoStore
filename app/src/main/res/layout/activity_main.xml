@@ -36,6 +36,19 @@
              android:layout_width="match_parent"
              android:layout_height="50dp"
              android:text="tempDemp"/>
+          <Button
+                android:id="@+id/threadBtn"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:text="thread"/>
+
         </LinearLayout>
      </ScrollView>
+
+    <include
+        layout="@layout/logging"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_gravity="bottom"
+        android:layout_weight="0.25" />
 </LinearLayout>
