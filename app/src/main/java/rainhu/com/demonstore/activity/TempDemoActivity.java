@@ -28,8 +28,8 @@ public class TempDemoActivity extends Activity {
     public void onGetExclusiveCoreBtnClicked(View view){
         Log.i("zhengyu","onGetExclusiveCoreBtnClicked");
 
-        int temp [] = Process.getExclusiveCores();
-        Log.i("zhengyu"," length: "+temp.length);
+       // int temp [] = Process.getExclusiveCores();
+       // Log.i("zhengyu"," length: "+temp.length);
 
     }
 

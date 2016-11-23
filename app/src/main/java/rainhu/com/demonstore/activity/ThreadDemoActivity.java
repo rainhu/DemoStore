@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.os.Message;
 
 import rainhu.com.demonstore.R;
+import rainhu.com.demonstore.logger.Log;
 
 /**
  * Created by huzhengyu on 16-11-22.
@@ -33,7 +34,7 @@ import rainhu.com.demonstore.R;
  *
  *
  */
-public class ThreadDemoActivity  extends Activity{
+public class ThreadDemoActivity extends LoggingActivity{
     private Handler mHandler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
@@ -52,6 +53,8 @@ public class ThreadDemoActivity  extends Activity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_threaddemo);
+
+        Log.i(mLogTag,"test");
     }
 
     //basic use of handler

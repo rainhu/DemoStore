@@ -45,11 +45,11 @@ public abstract class LoggingActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Log.d(mLogTag, "onCreate");
 
-        setContentView(R.layout.activity_logging);
+       // setContentView(R.layout.activity_logging);
 
         // Set the color and description
         //setDescription(R.string.activity_description_basic);
-        setBackgroundColor(R.color.gray);
+        //setBackgroundColor(R.color.gray);
 
 
     }
