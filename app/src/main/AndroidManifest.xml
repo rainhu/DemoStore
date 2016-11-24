@@ -27,6 +27,8 @@
         <activity android:name=".activity.TempDemoActivity"/>
 
         <activity android:name=".activity.ThreadDemoActivity"/>
+
+        <activity android:name=".activity.AboutActivity" />
     </application>
 
 </manifest>

@@ -53,8 +53,13 @@ public class ThreadDemoActivity extends LoggingActivity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_threaddemo);
+    }
 
-        Log.i(mLogTag,"test");
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Log.i("hzy","test");
     }
 
     //basic use of handler

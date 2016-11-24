@@ -6,6 +6,7 @@
     <string name="fill">fill</string>
     <string name="clear">clear</string>
 
-
+    <!-- main menu-->
+    <string name="about">about</string>
 
 </resources>
