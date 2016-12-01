@@ -4,18 +4,21 @@ import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.transition.Slide;
+import android.transition.TransitionInflater;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import rainhu.com.demonstore.activity.AboutActivity;
 import rainhu.com.demonstore.activity.AnimationActivity;
 import rainhu.com.demonstore.activity.MediaDemoActivity;
 import rainhu.com.demonstore.activity.StorageFillerActivity;
-import rainhu.com.demonstore.activity.TempDemoActivity;
+import rainhu.com.demonstore.powershot.PowershotActivity;
 import rainhu.com.demonstore.activity.ThreadDemoActivity;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
@@ -23,17 +26,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button storageFillerBtn;
     private Button mediaDemoBtn;
     private Button animationBtn;
-    private Button tmpDemoBtn;
+    private Button powershotBtn;
     private Button threadBtn;
+
+    private long lastBackPressedTime = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
-        setSupportActionBar(toolbar);
-        toolbar.setOnMenuItemClickListener(onMenuItemClick);
 
         storageFillerBtn = (Button) findViewById(R.id.storageFillerBtn);
         storageFillerBtn.setOnClickListener(this);
@@ -44,11 +45,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         animationBtn = (Button) findViewById(R.id.animationBtn);
         animationBtn.setOnClickListener(this);
 
-        tmpDemoBtn = (Button) findViewById(R.id.tempBtn);
-        tmpDemoBtn.setOnClickListener(this);
+        powershotBtn = (Button) findViewById(R.id.powershotBtn);
+        powershotBtn.setOnClickListener(this);
 
         threadBtn = (Button) findViewById(R.id.threadBtn);
         threadBtn.setOnClickListener(this);
+
+        Slide slide = (Slide) TransitionInflater.from(this).inflateTransition(R.transition.activity_slide);
+        getWindow().setExitTransition(slide);
+
+
     }
 
     @Override
@@ -70,8 +76,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.animationBtn:
                 startActivity(new Intent(this, AnimationActivity.class));
                 break;
-            case R.id.tempBtn:
-                startActivity(new Intent(this, TempDemoActivity.class));
+            case R.id.powershotBtn:
+                startActivity(new Intent(this, PowershotActivity.class));
                 break;
             case R.id.threadBtn:
                 startActivity(new Intent(this, ThreadDemoActivity.class));
@@ -80,6 +86,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+
+    @Override
+    public void onBackPressed() {
+        long curTime = System.currentTimeMillis();
+        if( curTime - lastBackPressedTime > 2000){
+            Toast.makeText(this,"再次点击返回键将会退出！",Toast.LENGTH_SHORT).show();
+            lastBackPressedTime = curTime;
+        }else{
+            super.onBackPressed();
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

@@ -3,6 +3,8 @@
     package="rainhu.com.demonstore">
     <permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
 
     <application
         android:allowBackup="true"
@@ -13,22 +15,26 @@
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <activity android:name=".activity.StorageFillerActivity"/>
+        <activity android:name=".activity.StorageFillerActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|keyboardHidden"/>
 
         <activity android:name=".activity.MediaDemoActivity"/>
 
         <activity android:name=".activity.AnimationActivity"/>
 
-        <activity android:name=".activity.TempDemoActivity"/>
+        <activity android:name=".powershot.PowershotActivity"/>
 
         <activity android:name=".activity.ThreadDemoActivity"/>
 
         <activity android:name=".activity.AboutActivity" />
+
+        <service android:name=".powershot.PowershotService">
+        </service>
+
     </application>
 
 </manifest>

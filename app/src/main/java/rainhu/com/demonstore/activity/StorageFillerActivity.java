@@ -7,6 +7,8 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.StatFs;
+import android.transition.Fade;
+import android.transition.TransitionInflater;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -97,6 +99,8 @@ public class StorageFillerActivity extends Activity implements View.OnClickListe
 
         mSharedPreferences =  mContext.getSharedPreferences("sp",MODE_PRIVATE);
 
+        Fade fade = (Fade) TransitionInflater.from(this).inflateTransition(R.transition.activity_fade);
+        getWindow().setExitTransition(fade);
 
     }
 

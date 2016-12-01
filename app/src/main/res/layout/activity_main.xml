@@ -32,10 +32,10 @@
              android:layout_height="50dp"
              android:text="animation"/>
          <Button
-             android:id="@+id/tempBtn"
+             android:id="@+id/powershotBtn"
              android:layout_width="match_parent"
              android:layout_height="50dp"
-             android:text="tempDemp"/>
+             android:text="Powershot"/>
           <Button
                 android:id="@+id/threadBtn"
                 android:layout_width="match_parent"
@@ -44,6 +44,8 @@
 
         </LinearLayout>
      </ScrollView>
+
+
 
     <include
         layout="@layout/logging"

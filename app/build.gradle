@@ -22,4 +22,6 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:25.0.0'
     compile 'com.android.support:recyclerview-v7:23.1.1'
+    compile "com.github.tarek360:instacapture:1.2.2"
+    compile 'com.jaredrummler:android-processes:1.0.8'
 }
