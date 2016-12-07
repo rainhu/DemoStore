@@ -17,12 +17,15 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.w3c.dom.Text;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import rainhu.com.demonstore.R;
 
@@ -53,6 +56,7 @@ public class StorageFillerActivity extends Activity implements View.OnClickListe
 
     private TextView mTotalStorage;
     private TextView mFreeStorage;
+    private TextView mFilesTextView;
 
     private StatFs mDataFileStats;
 
@@ -63,9 +67,10 @@ public class StorageFillerActivity extends Activity implements View.OnClickListe
     private FillTask mTask;
     private Boolean isTaskActive = false;
 
-
     public static final int ERROR_NO_SPACE = -1;
     public static final int ERROR_NO_SUITABLE_FILE = -2;
+    public static final int ERROR_INVALID_INPUT = -3;
+
     public static final int SUCCESS_FILL_STORAGE = 0;
     public static final int SUCCESS_CLEAR_STORAGE = 1;
     public static final int SUCCESS_CLEAR_ALL = 2;
@@ -99,6 +104,9 @@ public class StorageFillerActivity extends Activity implements View.OnClickListe
 
         mSharedPreferences =  mContext.getSharedPreferences("sp",MODE_PRIVATE);
 
+
+        mFilesTextView = (TextView) findViewById(R.id.files);
+
         Fade fade = (Fade) TransitionInflater.from(this).inflateTransition(R.transition.activity_fade);
         getWindow().setExitTransition(fade);
 
@@ -116,6 +124,20 @@ public class StorageFillerActivity extends Activity implements View.OnClickListe
     private void restateDataDir() {
         mDataFileStats.restat("/data");
         mFreeStorage.setText("Free : " + mDataFileStats.getAvailableBytes()/1024/1024 + " MB");
+
+        String createdFilesText = mFileMap.isEmpty() ?  "" : "CreatedFiles : \n";
+
+        Set set = mFileMap.entrySet();
+        Iterator it = set.iterator();
+        while(it.hasNext() ) {
+            Map.Entry tmpentry = (Map.Entry) it.next();
+            File tmpFile = new File((String) tmpentry.getKey());
+            Long tmpFileSize = (Long) tmpentry.getValue();
+
+            createdFilesText += tmpFile.getName() + " : "+ tmpFileSize.toString() + "MB";
+            createdFilesText += "\n";
+        }
+        mFilesTextView.setText(createdFilesText);
     }
 
 
@@ -165,6 +187,9 @@ public class StorageFillerActivity extends Activity implements View.OnClickListe
         mCancleBtn.setEnabled(false);
         mProgressBar.setProgress(0);
         isTaskActive = false;
+        mEditText.setText("");
+        restateDataDir();
+
     }
 
 
@@ -174,7 +199,10 @@ public class StorageFillerActivity extends Activity implements View.OnClickListe
             //Toast.makeText(mContext,"Please enter a valid number!",Toast.LENGTH_SHORT).show();
             return 0L;
         }
-
+        Pattern pattern = Pattern.compile("[0-9]*");
+        if(!pattern.matcher(number).matches()){
+            return -1;
+        }
         return Long.parseLong(number);
     }
 
@@ -186,7 +214,6 @@ public class StorageFillerActivity extends Activity implements View.OnClickListe
         @Override
         protected void onPreExecute() {
             Log.i("zhengyu","onPreExecute");
-
             mCancleBtn.setEnabled(true);
             mShowProcess.setText("Loading ...");
             mProgressBar.setProgress(0);
@@ -199,10 +226,12 @@ public class StorageFillerActivity extends Activity implements View.OnClickListe
             Log.i("zhengyu","doInBackground");
             //String data = mEditText.get
             final long expectSize = getEditTextData();
+            if(expectSize < 0 && params[0] != 2 ){
+                return ERROR_INVALID_INPUT;
+            }
+
             int msg = 0;
-
-             int count = mFileMap.size();
-
+            int count = mFileMap.size();
             if(params[0] == 0) { //FillStorage
                 if(expectSize > mDataFileStats.getAvailableBytes()/1024/1024){
                     //要填充的存储大于剩余可用存储
@@ -341,10 +370,6 @@ public class StorageFillerActivity extends Activity implements View.OnClickListe
         protected void onPostExecute(Integer msg) {
             Log.i("zhengyu","onPostExecute");
             switch (msg){
-                case ERROR_NO_SPACE:
-                    break;
-                case ERROR_NO_SUITABLE_FILE:
-                    break;
                 case SUCCESS_FILL_STORAGE:
                     Toast.makeText(StorageFillerActivity.this,"success in fill storage !!!", Toast.LENGTH_SHORT).show();
                     break;
@@ -354,6 +379,11 @@ public class StorageFillerActivity extends Activity implements View.OnClickListe
                 case SUCCESS_CLEAR_ALL:
                     Toast.makeText(StorageFillerActivity.this,"success in clear all !!!", Toast.LENGTH_SHORT).show();
                     break;
+                case ERROR_NO_SPACE:
+                case ERROR_NO_SUITABLE_FILE:
+                case ERROR_INVALID_INPUT :
+                    Toast.makeText(StorageFillerActivity.this,"please in put valid number !!!", Toast.LENGTH_SHORT).show();
+                    break;
                 default:
                     break;
             }
@@ -361,24 +391,7 @@ public class StorageFillerActivity extends Activity implements View.OnClickListe
             mCancleBtn.setEnabled(false);
             mEditText.setText("");
             isTaskActive = false;
-
+            mProgressBar.setProgress(0);
         }
     }
-    /*
-    private void initProcessDialog(){
-        mProgressDialog = new ProgressDialog(mContext);
-        mProgressDialog.setTitle("Filling ...");
-        mProgressDialog.setProgressStyle(0);
-        mProgressDialog.setCancelable(true);
-        mProgressDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-            @Override
-            public void onDismiss(DialogInterface dialog) {
-                //TODO
-                //update data view
-            }
-        });
-
-        mProgressDialog.show();
-    }
-    */
 }
