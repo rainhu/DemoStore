@@ -41,6 +41,14 @@
         android:id="@+id/mediademo_saveMediaProviderDB"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
         android:text="CrawlDB"/>
+    <ProgressBar
+        android:id="@+id/mediademo_processBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:progress="0"
+        android:max="100"
+        style="?android:attr/progressBarStyleHorizontal"/>
 
 </LinearLayout>

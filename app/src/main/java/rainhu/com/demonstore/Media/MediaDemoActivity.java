@@ -1,4 +1,4 @@
-package rainhu.com.demonstore.activity;
+package rainhu.com.demonstore.Media;
 
 import android.Manifest;
 import android.app.Activity;
@@ -9,23 +9,31 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.database.DatabaseErrorHandler;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.RemoteException;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import rainhu.com.demonstore.R;
 
@@ -43,6 +51,8 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
 
     private Button mSaveMediaProviderDBBtn;
     private  ContentProviderClient mMediaProvider;
+
+    private ProgressBar mProgressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,17 +84,12 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
 
         }
 
-
-
-
+        mProgressBar = (ProgressBar) findViewById(R.id.mediademo_processBar);
     }
-
 
     @Override
     protected void onResume() {
         super.onResume();
-
-
     }
 
     @Override
@@ -165,6 +170,7 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
                 MediaStore.Files.FileColumns.DATE_MODIFIED, // 2
         };
 
+        MediaInserter mediaInserter = null;
         @Override
         protected void onPreExecute() {
             mMediaProvider = mContext.getContentResolver()
@@ -172,27 +178,50 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
 
             where = MediaStore.Files.FileColumns._ID + ">?";
             selectionArgs = new String[] { "" };
+            mProgressBar.setProgress(0);
 
-
-
-
+            mediaInserter = new MediaInserter(mMediaProvider,500);
         }
+
+
+        //12-09 14:29:27.827 22128 22128 I zhengyu : have permission
+//        12-09 14:29:28.906 22128 22158 I zhengyu : db path :/data/user/0/rainhu.com.demonstore/databases/external.db
+//        12-09 14:29:28.991 22128 22158 I zhengyu : countQuery takes :0 seconds
+//        12-09 14:29:28.991 22128 22158 I zhengyu : count:51145
+//                12-09 14:38:11.260 22128 22158 I zhengyu : insert DB takes :522 seconds
+//        12-09 14:38:11.263 22128 22158 I zhengyu : now begin to copy file
+//        12-09 14:38:11.367 22128 22158 I zhengyu : copy takes : 0 seconds
+
 
         @Override
         protected Void doInBackground(Void... params) {
-
             File dbFile = mContext.getDatabasePath(EXTERNAL_DATABASE_NAME);
             ///data/user/0/rainhu.com.demonstore/databases/external.db
             Log.i("zhengyu","db path :"+ dbFile.getPath());
             if(dbFile.exists()){
                 dbFile.delete();
             }
+            long countQueryTime = -1;
+
+            try{
+             long start= System.currentTimeMillis();
 
             //Log.i("zhengyu", "dbPath :"+dbFile.getAbsolutePath());
             MyDbHelper dbHelper = new MyDbHelper(mContext, EXTERNAL_DATABASE_NAME, null, 1);
             SQLiteDatabase db = dbHelper.getWritableDatabase();
+            c = mMediaProvider.query(filesUri, new String[]{"count(*) AS count"},
+                        null, null, null);
+
+            countQueryTime = System.currentTimeMillis();
+             Log.i("zhengyu","countQuery takes :"+ (System.currentTimeMillis() - start) / 1000 + " seconds");
+
+            c.moveToFirst();
+            long count = c.getInt(0);
+            Log.i("zhengyu","count:"+count);
+            int i = 0;
             while (true) {
-                publishProgress(1);
+
+                publishProgress((int)(i++ * 100 / ( count / 1000 )));
 
                 selectionArgs[0] = "" + lastId;
                 if (c != null) {
@@ -221,25 +250,71 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
                     lastId = rowId;
 
                     ContentValues values = new ContentValues();
-                    values.put("_id" , rowId);
-                    values.put("_data" , path);
-                    values.put("format" , format);
-                    values.put("date_modified" , lastModified);
-                    db.insert("files", null ,values);
+                    values.put("_id", rowId);
+                    values.put("_data", path);
+                    values.put("format", format);
+                    values.put("date_modified", lastModified);
+                    db.insert("files", null, values);
                 }
 
+
+
             }
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            } finally {
+                c.close();
+            }
+            long insertDatabaseTime = System.currentTimeMillis();
+            Log.i("zhengyu","insert DB takes :"+ (insertDatabaseTime - countQueryTime) / 1000 + " seconds" );
+
+            Log.i("zhengyu","now begin to copy file");
+
+            //copy external.db to /storage/emulated/0/external.db
+            String target = Environment.getExternalStorageDirectory() + "/"+EXTERNAL_DATABASE_NAME;
+            if (dbFile.exists()){
+                copyFile(dbFile.getPath(), target);
+            }
+
+            Log.i("zhengyu","copy takes : "+  (System.currentTimeMillis() - insertDatabaseTime) / 1000+ " seconds");
+            publishProgress(100);
+
             return null;
         }
 
         @Override
         protected void onProgressUpdate(Integer... values) {
-            Log.i("zhengyu","still insert ...");
+            mProgressBar.setProgress(values[0]);
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
+
             Toast.makeText(mContext , "crawl MediaProvider DB Success !" , Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void copyFile(String oldPath, String newPath){
+        InputStream fis = null;
+        OutputStream fos = null;
+
+        try {
+            fis = new FileInputStream(oldPath);
+            fos = new FileOutputStream(newPath);
+            byte[] buf = new byte[4096];
+            int i = 0;
+            while ((i= fis.read(buf)) != -1){
+                fos.write(buf,0,i);
+            }
+        } catch (Exception e) {
+            Log.i("zhengyu",e.getMessage());
+        }finally {
+            try {
+                fis.close();
+                fos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -302,9 +377,4 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
         intent.putExtra(Intent.EXTRA_STREAM, imageUri);
         startActivity(Intent.createChooser(intent, "share"));
     }
-
-
-
-
-
 }
