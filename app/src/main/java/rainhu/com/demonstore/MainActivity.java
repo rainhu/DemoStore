@@ -16,7 +16,7 @@ import android.widget.Toast;
 
 import rainhu.com.demonstore.activity.AboutActivity;
 import rainhu.com.demonstore.activity.AnimationActivity;
-import rainhu.com.demonstore.Media.MediaDemoActivity;
+import rainhu.com.demonstore.mediademo.MediaDemoActivity;
 import rainhu.com.demonstore.activity.StorageFillerActivity;
 import rainhu.com.demonstore.powershot.PowershotActivity;
 import rainhu.com.demonstore.activity.ThreadDemoActivity;

@@ -1,4 +1,4 @@
-package rainhu.com.demonstore.Media;
+package rainhu.com.demonstore.mediademo;
 
 import android.Manifest;
 import android.app.Activity;
@@ -17,19 +17,18 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.RemoteException;
 import android.provider.MediaStore;
-import android.provider.Settings;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,15 +43,21 @@ import rainhu.com.demonstore.R;
 public class MediaDemoActivity extends Activity implements View.OnClickListener{
     private Button mShareBtn;
     private Button mQueryBtn;
-    private EditText mDeleteNumber;
+    private EditText mOpText;
     private Button mDeleteBtn;
 
     private Context mContext;
 
     private Button mSaveMediaProviderDBBtn;
-    private  ContentProviderClient mMediaProvider;
+    private ContentProviderClient mMediaProvider;
+    private Button mCancleCrawlBtn;
 
     private ProgressBar mProgressBar;
+
+    private TextView mDisplayBoards;
+    private Button mClearBtn;
+
+    CrawlMediaDbTask mCrawlTask = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +71,7 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
         mQueryBtn = (Button) findViewById(R.id.mediademo_queryBtn);
         mQueryBtn.setOnClickListener(this);
 
-        mDeleteNumber = (EditText) findViewById(R.id.mediademo_deleteNumber);
+        mOpText = (EditText) findViewById(R.id.mediademo_opNumber);
         mDeleteBtn = (Button) findViewById(R.id.mediademo_deleteBtn);
         mDeleteBtn.setOnClickListener(this);
 
@@ -85,6 +90,13 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
         }
 
         mProgressBar = (ProgressBar) findViewById(R.id.mediademo_processBar);
+        mDisplayBoards = (TextView) findViewById(R.id.mediademo_displayBoards);
+
+        mClearBtn = (Button) findViewById(R.id.mediademo_clearBtn);
+        mClearBtn.setOnClickListener(this);
+
+        mCancleCrawlBtn = (Button) findViewById(R.id.mediademo_cancle_CrawlDbTask);
+        mCancleCrawlBtn.setOnClickListener(this);
     }
 
     @Override
@@ -119,10 +131,24 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
                 break;
             case R.id.mediademo_saveMediaProviderDB:
                 onSaveMediaProviderDBClicked();
+
+                break;
+            case R.id.mediademo_clearBtn:
+                clearDisplayBoards();
+                break;
+            case R.id.mediademo_cancle_CrawlDbTask:
+                cancleCrawlTask();
                 break;
             default:
                 break;
         }
+    }
+
+    private void cancleCrawlTask() {
+        if(mCrawlTask != null) {
+            mCrawlTask.cancel(true);
+        }
+        mProgressBar.setProgress(0);
     }
 
 
@@ -171,6 +197,8 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
         };
 
         MediaInserter mediaInserter = null;
+
+        SQLiteDatabase db = null;
         @Override
         protected void onPreExecute() {
             mMediaProvider = mContext.getContentResolver()
@@ -181,6 +209,9 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
             mProgressBar.setProgress(0);
 
             mediaInserter = new MediaInserter(mMediaProvider,500);
+
+            mCancleCrawlBtn.setEnabled(true);
+            mSaveMediaProviderDBBtn.setEnabled(false);
         }
 
 
@@ -208,7 +239,8 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
 
             //Log.i("zhengyu", "dbPath :"+dbFile.getAbsolutePath());
             MyDbHelper dbHelper = new MyDbHelper(mContext, EXTERNAL_DATABASE_NAME, null, 1);
-            SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+            db = dbHelper.getWritableDatabase();
             c = mMediaProvider.query(filesUri, new String[]{"count(*) AS count"},
                         null, null, null);
 
@@ -263,7 +295,12 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
             } catch (RemoteException e) {
                 e.printStackTrace();
             } finally {
-                c.close();
+                if(c != null) {
+                    c.close();
+                }
+                if(db != null){
+                    db.close();
+                }
             }
             long insertDatabaseTime = System.currentTimeMillis();
             Log.i("zhengyu","insert DB takes :"+ (insertDatabaseTime - countQueryTime) / 1000 + " seconds" );
@@ -289,6 +326,8 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
 
         @Override
         protected void onPostExecute(Void aVoid) {
+            mCancleCrawlBtn.setEnabled(false);
+            mSaveMediaProviderDBBtn.setEnabled(true);
 
             Toast.makeText(mContext , "crawl MediaProvider DB Success !" , Toast.LENGTH_SHORT).show();
         }
@@ -310,8 +349,12 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
             Log.i("zhengyu",e.getMessage());
         }finally {
             try {
-                fis.close();
-                fos.close();
+                if(fis != null) {
+                    fis.close();
+                }
+                if(fos != null) {
+                    fos.close();
+                }
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -319,14 +362,14 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
     }
 
     private void onSaveMediaProviderDBClicked() {
-
-        new CrawlMediaDbTask().execute();
+        mCrawlTask = new CrawlMediaDbTask();
+        mCrawlTask.execute();
 
     }
 
     private void onDeleteBtnClicked() {
 
-        String number = mDeleteNumber.getText().toString();
+        String number = mOpText.getText().toString();
 
         ContentResolver resolver = getApplicationContext().getContentResolver();
         Uri uri=MediaStore.Files.getContentUri("external");
@@ -339,17 +382,20 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
         Cursor c = null;
         c = resolver.query(uri,projection,where,selectArgs,MediaStore.Files.FileColumns._ID);
 
-                if(c!=null){
+                if(c != null && c.getCount() > 0){
                     c.moveToNext();
                     int index=c.getColumnIndex(MediaStore.Files.FileColumns.DATA);
                     String data=c.getString(index);
-                    Log.i("zhengyu","data:"+data);
                 }
 
         //  ArrayMap<String,String> d = new ArrayMap<String, String>();
 
         int i=resolver.delete(MediaStore.Files.getContentUri("external"),MediaStore.Files.FileColumns._ID+"=?", selectArgs);
-        //Log.i("zhengyu","return:"+i
+        if(i == 0){
+            setTextToDisplayBoards("no rowId# "+number+" record exists");
+        }else {
+            setTextToDisplayBoards("Delete rowId " + number + " succeed !");
+        }
     }
 
     private void onQueryBtnClicked() {
@@ -359,22 +405,44 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
 
         String projection[]={MediaStore.Files.FileColumns.DATA};
         String where=MediaStore.Files.FileColumns._ID+"=?";
-        String selectArgs[]={"8"};
+
+        String selectArgs[]={mOpText.getText().toString()};
         Cursor c=resolver.query(uri,projection,where,selectArgs,MediaStore.Files.FileColumns._ID);
-        if(c!=null) {
+        if(c != null && c.getCount() > 0) {
             c.moveToNext();
             int index = c.getColumnIndex(MediaStore.Files.FileColumns.DATA);
             String data = c.getString(index);
-            Log.i("zhengyu", "data:" + data);
+            setTextToDisplayBoards(data);
+        }else{
+            setTextToDisplayBoards("no rowId# "+mOpText.getText().toString()+" record exists");
         }
+
+        c.close();
     }
 
     private void onshareBtnClicked() {
-        Uri imageUri = Uri.parse("content://com.android.externalstorage.documents/document/4945-1AE7%3AIMG_20161102_151551.jpg");
+        //Uri imageUri = Uri.parse("content://com.android.externalstorage.documents/document/4945-1AE7%3AIMG_20161102_151551.jpg");
+
+        String rowId = mOpText.getText().toString();
+
+        //content://media/external//images/media/rowid
+        Uri imageUri = Uri.parse(MediaStore.Images.Media.EXTERNAL_CONTENT_URI+"/"+rowId);
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.addCategory("android.intent.category.DEFAULT");
         intent.setType("image/*");
         intent.putExtra(Intent.EXTRA_STREAM, imageUri);
         startActivity(Intent.createChooser(intent, "share"));
+
+        setTextToDisplayBoards("Intent to share "+imageUri);
+
+    }
+
+
+    private void setTextToDisplayBoards(String text){
+        mDisplayBoards.setText(text + "\n" +mDisplayBoards.getText());
+    }
+
+    private void clearDisplayBoards(){
+        mDisplayBoards.setText("");
     }
 }

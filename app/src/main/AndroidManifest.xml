@@ -22,7 +22,7 @@
         <activity android:name=".activity.StorageFillerActivity"
             android:configChanges="orientation|screenSize|smallestScreenSize|keyboardHidden"/>
 
-        <activity android:name=".Media.MediaDemoActivity"/>
+        <activity android:name=".mediademo.MediaDemoActivity"/>
 
         <activity android:name=".activity.AnimationActivity"/>
 
