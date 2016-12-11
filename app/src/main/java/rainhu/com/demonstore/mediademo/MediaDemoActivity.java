@@ -422,7 +422,6 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
 
     private void onshareBtnClicked() {
         //Uri imageUri = Uri.parse("content://com.android.externalstorage.documents/document/4945-1AE7%3AIMG_20161102_151551.jpg");
-
         String rowId = mOpText.getText().toString();
 
         //content://media/external//images/media/rowid
