@@ -18,6 +18,7 @@ import android.os.Environment;
 import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.provider.DocumentFile;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -29,6 +30,7 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -41,6 +43,8 @@ import rainhu.com.demonstore.R;
  */
 
 public class MediaDemoActivity extends Activity implements View.OnClickListener{
+    public static final String TAG = "mediademo";
+
     private Button mShareBtn;
     private Button mQueryBtn;
     private EditText mOpText;
@@ -58,6 +62,10 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
     private Button mClearBtn;
 
     CrawlMediaDbTask mCrawlTask = null;
+
+    private Button mOpenBtn;
+
+    private static final int READ_REQUEST_CODE = 42;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,6 +105,9 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
 
         mCancleCrawlBtn = (Button) findViewById(R.id.mediademo_cancle_CrawlDbTask);
         mCancleCrawlBtn.setOnClickListener(this);
+
+        mOpenBtn = (Button) findViewById(R.id.mediademo_open);
+        mOpenBtn.setOnClickListener(this);
     }
 
     @Override
@@ -139,8 +150,54 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
             case R.id.mediademo_cancle_CrawlDbTask:
                 cancleCrawlTask();
                 break;
+            case R.id.mediademo_open:
+                openFile();
             default:
                 break;
+        }
+    }
+
+    private void openFile() {
+
+        //Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE); //获取选择目录
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE); //显示结果只有可以打开的文件
+        intent.setType("image/*");
+        //intent.setFlags(Intent.EXTRA_ALLOW_MULTIPLE);
+        startActivityForResult(intent, READ_REQUEST_CODE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
+                Uri treeUri = data.getData();
+                Log.i(TAG, "Uri: " + treeUri.toString());
+
+//                //for directory choose
+//                DocumentFile pickedDir = DocumentFile.fromTreeUri(this, treeUri);
+//
+//                // List all existing files inside picked directory
+//                for (DocumentFile file : pickedDir.listFiles()) {
+//                    Log.i(TAG, "Found file " + file.getName() + " with size " + file.length());
+//                }
+//
+//                // Create a new file and write into it
+//                OutputStream out = null;
+//                try {
+//                    DocumentFile dcimFolder = pickedDir.findFile("DCIM");
+//                    if (dcimFolder != null && dcimFolder.isDirectory()) {
+//                        Log.i(TAG, "Found DCIM Directory");
+//                    } else {
+//                        Log.i(TAG, "Not found DCIM Directory");
+//                    }
+//
+//                    //Create file
+//                    DocumentFile newFile = pickedDir.createFile("text/plain", "new_file");
+//                } catch (Exception e) {
+//                    Log.i(TAG, e.toString());
+//                }
         }
     }
 

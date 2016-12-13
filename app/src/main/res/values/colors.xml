@@ -14,4 +14,12 @@
     <color name="gray">#424242</color>
     <color name="lightgray">#F5F5F5</color>
     <color name="cyan">#00838F</color>
+
+    <color name="Orange">#ff5722</color>
+    <color name="DeepPurple">#673AB7</color>
+    <color name="DeepPurple900">#311B92</color>
+    <color name="White">#fff</color>
+    <color name="Gray">#888888</color>
+    <color name="Gray100">#dddddd</color>
+    <color name="Gray600">#999999</color>
 </resources>
