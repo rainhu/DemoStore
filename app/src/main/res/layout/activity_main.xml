@@ -8,43 +8,55 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="rainhu.com.demonstore.MainActivity">
-     <ScrollView
-         android:layout_width="match_parent"
-         android:layout_height="match_parent">
+    tools:context="rainhu.com.demostore.MainActivity">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical">
-         <Button
-             android:id="@+id/storageFillerBtn"
-             android:layout_width="match_parent"
-             android:layout_height="50dp"
-             android:text="@string/storagefiller" />
-         <Button
-             android:id="@+id/mediaDemoBtn"
-             android:layout_width="match_parent"
-             android:layout_height="50dp"
-             android:text="mediaDemo"/>
-         <Button
-             android:id="@+id/animationBtn"
-             android:layout_width="match_parent"
-             android:layout_height="50dp"
-             android:text="animation"/>
-         <Button
-             android:id="@+id/powershotBtn"
-             android:layout_width="match_parent"
-             android:layout_height="50dp"
-             android:text="Powershot"/>
-          <Button
+
+            <Button
+                android:id="@+id/storageFillerBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/storagefiller" />
+
+            <Button
+                android:id="@+id/mediaDemoBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="mediaDemo" />
+
+            <Button
+                android:id="@+id/applockBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="applock" />
+
+            <Button
+                android:id="@+id/animationBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="animation" />
+
+            <Button
+                android:id="@+id/powershotBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Powershot" />
+
+            <Button
                 android:id="@+id/threadBtn"
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:text="thread"/>
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="thread" />
 
         </LinearLayout>
-     </ScrollView>
-
+    </ScrollView>
 
 
     <include

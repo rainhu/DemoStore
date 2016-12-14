@@ -1,8 +1,8 @@
-package rainhu.com.demonstore.activity;
+package rainhu.com.demostore.activity;
 
 import android.app.Activity;
 import android.os.Bundle;
-import rainhu.com.demonstore.R;
+import rainhu.com.demostore.R;
 
 /**
  * Created by hu on 16-11-24.

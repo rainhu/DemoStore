@@ -1,4 +1,4 @@
-package rainhu.com.demonstore.powershot;
+package rainhu.com.demostore.powershot;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -7,7 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
-import rainhu.com.demonstore.R;
+import rainhu.com.demostore.R;
 
 /**
  * Created by huzhengyu on 16-11-18.

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package rainhu.com.demonstore.logger;
+package rainhu.com.demostore.logger;
 
 import android.util.Log;
 

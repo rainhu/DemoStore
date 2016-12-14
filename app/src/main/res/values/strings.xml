@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">DemonStore</string>
+    <string name="app_name">DemoStore</string>
 
     <!-- storagefiller -->
     <string name="storagefiller">StorageFiller</string>

@@ -20,4 +20,4 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:id="@+id/log_fragment"
-    android:name="rainhu.com.demonstore.logger.LogFragment" />
+    android:name="rainhu.com.demostore.logger.LogFragment" />

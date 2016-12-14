@@ -1,4 +1,4 @@
-package rainhu.com.demonstore.activity;
+package rainhu.com.demostore.activity;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -17,8 +17,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.w3c.dom.Text;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -27,7 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import rainhu.com.demonstore.R;
+import rainhu.com.demostore.R;
 
 /**
  * Created by hu on 16-11-6.

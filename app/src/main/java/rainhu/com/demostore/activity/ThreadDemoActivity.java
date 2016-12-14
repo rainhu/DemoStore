@@ -1,12 +1,11 @@
-package rainhu.com.demonstore.activity;
+package rainhu.com.demostore.activity;
 
-import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 
-import rainhu.com.demonstore.R;
-import rainhu.com.demonstore.logger.Log;
+import rainhu.com.demostore.R;
+import rainhu.com.demostore.logger.Log;
 
 /**
  * Created by huzhengyu on 16-11-22.

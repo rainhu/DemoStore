@@ -1,16 +1,14 @@
-package rainhu.com.demonstore.powershot;
+package rainhu.com.demostore.powershot;
 
 
 import android.app.ActivityManager;
 import android.content.Context;
-import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,7 +19,7 @@ import com.jaredrummler.android.processes.models.AndroidAppProcess;
 import java.text.DecimalFormat;
 import java.util.List;
 
-import rainhu.com.demonstore.R;
+import rainhu.com.demostore.R;
 
 /**
  * Created by hu on 16-12-1.

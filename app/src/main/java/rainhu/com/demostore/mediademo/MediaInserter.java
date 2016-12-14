@@ -1,4 +1,4 @@
-package rainhu.com.demonstore.mediademo;
+package rainhu.com.demostore.mediademo;
 
 import android.content.ContentProviderClient;
 import android.content.ContentValues;

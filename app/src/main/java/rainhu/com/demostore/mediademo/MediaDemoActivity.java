@@ -1,4 +1,4 @@
-package rainhu.com.demonstore.mediademo;
+package rainhu.com.demostore.mediademo;
 
 import android.Manifest;
 import android.app.Activity;
@@ -18,7 +18,6 @@ import android.os.Environment;
 import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.provider.DocumentFile;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -30,13 +29,12 @@ import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import rainhu.com.demonstore.R;
+import rainhu.com.demostore.R;
 
 /**
  * Created by huzhengyu on 16-11-17.

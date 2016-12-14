@@ -1,9 +1,8 @@
-package rainhu.com.demonstore.powershot;
+package rainhu.com.demostore.powershot;
 
 import android.app.Activity;
 import android.app.Service;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.os.IBinder;
 
 import android.content.Context;
@@ -19,13 +18,10 @@ import android.view.Gravity;
 import android.view.WindowManager;
 import android.widget.Toast;
 
-import com.tarek360.instacapture.InstaCapture;
-import com.tarek360.instacapture.listener.ScreenCaptureListener;
-
 import java.util.Timer;
 import java.util.TimerTask;
 
-import rainhu.com.demonstore.logger.Log;
+import rainhu.com.demostore.logger.Log;
 
 
 /**

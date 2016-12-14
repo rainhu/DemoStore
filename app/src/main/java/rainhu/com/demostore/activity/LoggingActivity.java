@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package rainhu.com.demonstore.activity;
+package rainhu.com.demostore.activity;
 
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -25,11 +25,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
 
-import rainhu.com.demonstore.R;
-import rainhu.com.demonstore.logger.Log;
-import rainhu.com.demonstore.logger.LogFragment;
-import rainhu.com.demonstore.logger.LogWrapper;
-import rainhu.com.demonstore.logger.MessageOnlyLogFilter;
+import rainhu.com.demostore.R;
+import rainhu.com.demostore.logger.Log;
+import rainhu.com.demostore.logger.LogFragment;
+import rainhu.com.demostore.logger.LogWrapper;
+import rainhu.com.demostore.logger.MessageOnlyLogFilter;
 
 /**
  * Activity that logs all key lifecycle callbacks to {@link Log}.
