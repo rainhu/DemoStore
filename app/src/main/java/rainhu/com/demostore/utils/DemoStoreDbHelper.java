@@ -52,9 +52,9 @@ public class DemoStoreDbHelper extends SQLiteOpenHelper {
         db.execSQL("create table if not exists " + AppLockMetadata.TABLE_NAME + "(" +
                 "id INTEGER PRIMARY KEY,"
                 + AppLockMetadata.TABLE_COLUMN_PACKAGENAME + " VARCHAR,"
-                + AppLockMetadata.TABLE_COLUMN_ISNEEDLOCK + " VARCHAR,"
-                + AppLockMetadata.TABLE_COLUMN_HASLOCKED + " VARCHAR,"
-                + AppLockMetadata.TABLE_COLUMN_LABELNAME + " VARCHAR COLLATE NOCASE"
+                + AppLockMetadata.TABLE_COLUMN_LABELNAME + " VARCHAR COLLATE NOCASE,"
+                + AppLockMetadata.TABLE_COLUMN_STATUS + " VARCHAR,"
+                + AppLockMetadata.TABLE_COLUMN_ICON + " VARCHAR"
                 + ");");
     }
 

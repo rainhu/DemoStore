@@ -9,4 +9,7 @@
     <!-- main menu-->
     <string name="about">about</string>
 
+    <!-- app lock -->
+    <string name="applock_loading">Loading ... </string>
+
 </resources>

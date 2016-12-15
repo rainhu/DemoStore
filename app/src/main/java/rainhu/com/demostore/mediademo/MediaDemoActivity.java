@@ -479,7 +479,7 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
         //Uri imageUri = Uri.parse("content://com.android.externalstorage.documents/document/4945-1AE7%3AIMG_20161102_151551.jpg");
         String rowId = mOpText.getText().toString();
 
-        //content://media/external//images/media/rowid
+        //   content://media/external//images/media/rowid
         Uri imageUri = Uri.parse(MediaStore.Images.Media.EXTERNAL_CONTENT_URI+"/"+rowId);
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.addCategory("android.intent.category.DEFAULT");

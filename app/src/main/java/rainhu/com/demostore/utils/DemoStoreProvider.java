@@ -10,9 +10,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import rainhu.com.demostore.applock.AppLockMetadata;
-import rainhu.com.demostore.logger.Log;
 
 /**
  * Created by hu on 16-12-14.
@@ -31,7 +31,7 @@ public class DemoStoreProvider extends ContentProvider {
     private static final int TABLE_APPLOCK = 1;
 
     static {
-        URI_MATCHER.addURI("demostore", "*/applock", TABLE_APPLOCK);
+        URI_MATCHER.addURI("demostore", "/applock", TABLE_APPLOCK);
     }
 
 
@@ -118,6 +118,8 @@ public class DemoStoreProvider extends ContentProvider {
 
     private String getTableName(Uri uri){
         int index = URI_MATCHER.match(uri);
+
+        Log.i(TAG,"index : "+index);
         String table = null;
 
         switch (index) {
@@ -128,7 +130,7 @@ public class DemoStoreProvider extends ContentProvider {
                 break;
         }
         if (table == null){
-            Log.e(TAG, "check uri is right");
+            Log.e(TAG, "check uri is right , uri :"+uri);
             throw new IllegalArgumentException();
         }
         return table;

@@ -1,19 +1,26 @@
 package rainhu.com.demostore.applock;
+
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
 
 /**
  * Created by hu on 16-12-14.
- *
  */
 
 
 public class AppInfo {
-    private String appLabel;
-    private Drawable appIcon;
-    private Intent intent;
     private String packageName;
+    private String appLabel;
+    private int status;
+    private Drawable appIcon;
 
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
 
     public String getAppLabel() {
         return appLabel;
@@ -31,13 +38,6 @@ public class AppInfo {
         this.packageName = packageName;
     }
 
-    public Intent getIntent() {
-        return intent;
-    }
-
-    public void setIntent(Intent intent) {
-        this.intent = intent;
-    }
 
     public Drawable getAppIcon() {
         return appIcon;
@@ -45,5 +45,10 @@ public class AppInfo {
 
     public void setAppIcon(Drawable appIcon) {
         this.appIcon = appIcon;
+    }
+
+    @Override
+    public String toString() {
+        return "packageName : " + packageName + "\n appLabel : " + appLabel + "\nstatus : " + status;
     }
 }
