@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.RemoteException;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
@@ -40,7 +41,7 @@ import rainhu.com.demostore.R;
  * Created by huzhengyu on 16-11-17.
  */
 
-public class MediaDemoActivity extends Activity implements View.OnClickListener{
+public class MediaDemoActivity extends Activity implements View.OnClickListener {
     public static final String TAG = "mediademo";
 
     private Button mShareBtn;
@@ -64,6 +65,8 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
     private Button mOpenBtn;
 
     private static final int READ_REQUEST_CODE = 42;
+    private static final int WRITE_REQUEST_CODE = 43;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,10 +87,10 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
         mSaveMediaProviderDBBtn = (Button) findViewById(R.id.mediademo_saveMediaProviderDB);
         mSaveMediaProviderDBBtn.setOnClickListener(this);
 
-        if(PackageManager.PERMISSION_GRANTED == ContextCompat.checkSelfPermission(MediaDemoActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)){
+        if (PackageManager.PERMISSION_GRANTED == ContextCompat.checkSelfPermission(MediaDemoActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
 
             Log.i("zhengyu", "have permission");
-        }else{
+        } else {
             Log.i("zhengyu", "do not have permission");
             //ActivityCompat.shouldShowRequestPermissionRationale(MediaDemoActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
@@ -115,8 +118,8 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        Log.i("zhengyu","onRequestPermissionsResult"+grantResults[0]);
-        switch (requestCode){
+        Log.i("zhengyu", "onRequestPermissionsResult" + grantResults[0]);
+        switch (requestCode) {
             case 123:
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // Permission Granted 用户允许权限 继续执行（
@@ -128,7 +131,7 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
 
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
+        switch (v.getId()) {
             case R.id.mediademo_shareBtn:
                 onshareBtnClicked();
                 break;
@@ -149,13 +152,13 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
                 cancleCrawlTask();
                 break;
             case R.id.mediademo_open:
-                openFile();
+                openFileBySAF();
             default:
                 break;
         }
     }
 
-    private void openFile() {
+    private void openFileBySAF() {
 
         //Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE); //获取选择目录
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -165,13 +168,38 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
         startActivityForResult(intent, READ_REQUEST_CODE);
     }
 
+
+    // Here are some examples of how you might call this method.
+// The first parameter is the MIME type, and the second parameter is the name
+// of the file you are creating:
+//
+// createFile("text/plain", "foobar.txt");
+// createFile("image/png", "mypicture.png");
+// Unique request code.
+    private void createFileBySAF(String mimeType, String fileName) {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        // Filter to only show results that can be "opened", such as
+        // a file (as opposed to a list of contacts or timezones).
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        // Create a file with the requested MIME type.
+        intent.setType(mimeType);
+        intent.putExtra(Intent.EXTRA_TITLE, fileName);
+        startActivityForResult(intent, WRITE_REQUEST_CODE);
+    }
+
+    // 删除文件
+//    前提是Document.COLUMN_FLAGS包含SUPPORTS_DELETE
+//
+//    DocumentsContract.deleteDocument(getContentResolver(), uri);
+
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if(requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
-                Uri treeUri = data.getData();
-                Log.i(TAG, "Uri: " + treeUri.toString());
+        if (requestCode == READ_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
+            Uri treeUri = data.getData();
+            Log.i(TAG, "Uri: " + treeUri.toString());
 
 //                //for directory choose
 //                DocumentFile pickedDir = DocumentFile.fromTreeUri(this, treeUri);
@@ -200,14 +228,19 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
     }
 
     private void cancleCrawlTask() {
-        if(mCrawlTask != null) {
+        if (mCrawlTask != null) {
             mCrawlTask.cancel(true);
+            mProgressBar.setProgress(0);
+
+            mCancleCrawlBtn.setEnabled(false);
+            mSaveMediaProviderDBBtn.setEnabled(true);
+            Toast.makeText(mContext, "crawl MediaProvider DB cancle !", Toast.LENGTH_SHORT).show();
         }
-        mProgressBar.setProgress(0);
+
     }
 
 
-    class MyDbHelper extends SQLiteOpenHelper{
+    class MyDbHelper extends SQLiteOpenHelper {
 
         public static final String CREATE_TABLE_FILES = "CREATE TABLE IF NOT EXISTS files(" +
                 "_id INTEGER PRIMARY KEY," +
@@ -232,7 +265,7 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
     }
 
 
-    private class CrawlMediaDbTask extends AsyncTask<Void,Integer,Void>{
+    private class CrawlMediaDbTask extends AsyncTask<Void, Integer, Void> {
         Cursor c = null;
         String where = null;
         String[] selectionArgs = null;
@@ -244,26 +277,25 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
 
         final String EXTERNAL_DATABASE_NAME = "external.db";
 
-        private final String[] FILES_PROJECTION = new String[] {
+        private final String[] FILES_PROJECTION = new String[]{
                 MediaStore.Files.FileColumns._ID, // 0
                 MediaStore.Files.FileColumns.DATA, // 1
                 "format",
                 MediaStore.Files.FileColumns.DATE_MODIFIED, // 2
         };
 
-        MediaInserter mediaInserter = null;
 
         SQLiteDatabase db = null;
+
         @Override
         protected void onPreExecute() {
             mMediaProvider = mContext.getContentResolver()
                     .acquireContentProviderClient(MediaStore.AUTHORITY);
 
             where = MediaStore.Files.FileColumns._ID + ">?";
-            selectionArgs = new String[] { "" };
+            selectionArgs = new String[]{""};
             mProgressBar.setProgress(0);
 
-            mediaInserter = new MediaInserter(mMediaProvider,500);
 
             mCancleCrawlBtn.setEnabled(true);
             mSaveMediaProviderDBBtn.setEnabled(false);
@@ -283,92 +315,91 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
         protected Void doInBackground(Void... params) {
             File dbFile = mContext.getDatabasePath(EXTERNAL_DATABASE_NAME);
             ///data/user/0/rainhu.com.demonstore/databases/external.db
-            Log.i("zhengyu","db path :"+ dbFile.getPath());
-            if(dbFile.exists()){
+            Log.i("zhengyu", "db path :" + dbFile.getPath());
+            if (dbFile.exists()) {
                 dbFile.delete();
             }
             long countQueryTime = -1;
 
-            try{
-             long start= System.currentTimeMillis();
+            try {
+                long start = System.currentTimeMillis();
 
-            //Log.i("zhengyu", "dbPath :"+dbFile.getAbsolutePath());
-            MyDbHelper dbHelper = new MyDbHelper(mContext, EXTERNAL_DATABASE_NAME, null, 1);
+                //Log.i("zhengyu", "dbPath :"+dbFile.getAbsolutePath());
+                MyDbHelper dbHelper = new MyDbHelper(mContext, EXTERNAL_DATABASE_NAME, null, 1);
 
-            db = dbHelper.getWritableDatabase();
-            c = mMediaProvider.query(filesUri, new String[]{"count(*) AS count"},
+                db = dbHelper.getWritableDatabase();
+                c = mMediaProvider.query(filesUri, new String[]{"count(*) AS count"},
                         null, null, null);
 
-            countQueryTime = System.currentTimeMillis();
-             Log.i("zhengyu","countQuery takes :"+ (System.currentTimeMillis() - start) / 1000 + " seconds");
+                countQueryTime = System.currentTimeMillis();
+                Log.i("zhengyu", "countQuery takes :" + (System.currentTimeMillis() - start) / 1000 + " seconds");
 
-            c.moveToFirst();
-            long count = c.getInt(0);
-            Log.i("zhengyu","count:"+count);
-            int i = 0;
-            while (true) {
+                c.moveToFirst();
+                long count = c.getInt(0);
+                Log.i("zhengyu", "count:" + count);
+                int i = 0;
+                while (true) {
 
-                publishProgress((int)(i++ * 100 / ( count / 1000 )));
+                    publishProgress((int) (i++ * 100 / (count / 1000)));
 
-                selectionArgs[0] = "" + lastId;
-                if (c != null) {
-                    c.close();
-                    c = null;
+                    selectionArgs[0] = "" + lastId;
+                    if (c != null) {
+                        c.close();
+                        c = null;
+                    }
+
+                    try {
+                        c = mMediaProvider.query(limitUri, FILES_PROJECTION,
+                                where, selectionArgs, MediaStore.Files.FileColumns._ID, null);
+                    } catch (RemoteException e) {
+                        e.printStackTrace();
+                    }
+                    if (c == null) {
+                        break;
+                    }
+                    int num = c.getCount();
+                    if (num == 0) {
+                        break;
+                    }
+                    while (c.moveToNext()) {
+                        long rowId = c.getLong(0);
+                        String path = c.getString(1);
+                        int format = c.getInt(2);
+                        long lastModified = c.getLong(3);
+                        lastId = rowId;
+
+                        ContentValues values = new ContentValues();
+                        values.put("_id", rowId);
+                        values.put("_data", path);
+                        values.put("format", format);
+                        values.put("date_modified", lastModified);
+                        db.insert("files", null, values);
+                    }
+
+
                 }
-
-                try {
-                    c = mMediaProvider.query(limitUri, FILES_PROJECTION,
-                            where, selectionArgs, MediaStore.Files.FileColumns._ID, null);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-                if (c == null) {
-                    break;
-                }
-                int num = c.getCount();
-                if (num == 0) {
-                    break;
-                }
-                while (c.moveToNext()) {
-                    long rowId = c.getLong(0);
-                    String path = c.getString(1);
-                    int format = c.getInt(2);
-                    long lastModified = c.getLong(3);
-                    lastId = rowId;
-
-                    ContentValues values = new ContentValues();
-                    values.put("_id", rowId);
-                    values.put("_data", path);
-                    values.put("format", format);
-                    values.put("date_modified", lastModified);
-                    db.insert("files", null, values);
-                }
-
-
-
-            }
             } catch (RemoteException e) {
                 e.printStackTrace();
             } finally {
-                if(c != null) {
+                if (c != null) {
                     c.close();
                 }
-                if(db != null){
+                if (db != null) {
                     db.close();
                 }
             }
             long insertDatabaseTime = System.currentTimeMillis();
-            Log.i("zhengyu","insert DB takes :"+ (insertDatabaseTime - countQueryTime) / 1000 + " seconds" );
+            Log.i("zhengyu", "insert DB takes :" + (insertDatabaseTime - countQueryTime) / 1000 + " seconds");
 
-            Log.i("zhengyu","now begin to copy file");
+            Log.i("zhengyu", "now begin to copy file");
 
             //copy external.db to /storage/emulated/0/external.db
-            String target = Environment.getExternalStorageDirectory() + "/"+EXTERNAL_DATABASE_NAME;
-            if (dbFile.exists()){
+            String target = Environment.getExternalStorageDirectory() + "/" + EXTERNAL_DATABASE_NAME;
+            if (dbFile.exists()) {
                 copyFile(dbFile.getPath(), target);
             }
 
-            Log.i("zhengyu","copy takes : "+  (System.currentTimeMillis() - insertDatabaseTime) / 1000+ " seconds");
+            Log.i("zhengyu", "copy takes : " + (System.currentTimeMillis() - insertDatabaseTime) / 1000 + " seconds");
             publishProgress(100);
 
             return null;
@@ -384,11 +415,11 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
             mCancleCrawlBtn.setEnabled(false);
             mSaveMediaProviderDBBtn.setEnabled(true);
 
-            Toast.makeText(mContext , "crawl MediaProvider DB Success !" , Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, "crawl MediaProvider DB Success !", Toast.LENGTH_SHORT).show();
         }
     }
 
-    public void copyFile(String oldPath, String newPath){
+    public void copyFile(String oldPath, String newPath) {
         InputStream fis = null;
         OutputStream fos = null;
 
@@ -397,17 +428,17 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
             fos = new FileOutputStream(newPath);
             byte[] buf = new byte[4096];
             int i = 0;
-            while ((i= fis.read(buf)) != -1){
-                fos.write(buf,0,i);
+            while ((i = fis.read(buf)) != -1) {
+                fos.write(buf, 0, i);
             }
         } catch (Exception e) {
-            Log.i("zhengyu",e.getMessage());
-        }finally {
+            Log.i("zhengyu", e.getMessage());
+        } finally {
             try {
-                if(fis != null) {
+                if (fis != null) {
                     fis.close();
                 }
-                if(fos != null) {
+                if (fos != null) {
                     fos.close();
                 }
             } catch (IOException e) {
@@ -427,49 +458,49 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
         String number = mOpText.getText().toString();
 
         ContentResolver resolver = getApplicationContext().getContentResolver();
-        Uri uri=MediaStore.Files.getContentUri("external");
-        Log.i("zhengyu","uri---->"+uri.toString());
+        Uri uri = MediaStore.Files.getContentUri("external");
+        Log.i("zhengyu", "uri---->" + uri.toString());
 
-        String projection[]={MediaStore.Files.FileColumns.DATA};
-        String where=MediaStore.Files.FileColumns._ID+"=?";
+        String projection[] = {MediaStore.Files.FileColumns.DATA};
+        String where = MediaStore.Files.FileColumns._ID + "=?";
         //String selectArgs[]={"8"};
         String selectArgs[] = {number};
         Cursor c = null;
-        c = resolver.query(uri,projection,where,selectArgs,MediaStore.Files.FileColumns._ID);
+        c = resolver.query(uri, projection, where, selectArgs, MediaStore.Files.FileColumns._ID);
 
-                if(c != null && c.getCount() > 0){
-                    c.moveToNext();
-                    int index=c.getColumnIndex(MediaStore.Files.FileColumns.DATA);
-                    String data=c.getString(index);
-                }
+        if (c != null && c.getCount() > 0) {
+            c.moveToNext();
+            int index = c.getColumnIndex(MediaStore.Files.FileColumns.DATA);
+            String data = c.getString(index);
+        }
 
         //  ArrayMap<String,String> d = new ArrayMap<String, String>();
 
-        int i=resolver.delete(MediaStore.Files.getContentUri("external"),MediaStore.Files.FileColumns._ID+"=?", selectArgs);
-        if(i == 0){
-            setTextToDisplayBoards("no rowId# "+number+" record exists");
-        }else {
+        int i = resolver.delete(MediaStore.Files.getContentUri("external"), MediaStore.Files.FileColumns._ID + "=?", selectArgs);
+        if (i == 0) {
+            setTextToDisplayBoards("no rowId# " + number + " record exists");
+        } else {
             setTextToDisplayBoards("Delete rowId " + number + " succeed !");
         }
     }
 
     private void onQueryBtnClicked() {
-        ContentResolver resolver=mContext.getContentResolver();
-        Uri uri= MediaStore.Files.getContentUri("external");
-        Log.i("zhengyu","uri---->"+uri.toString());
+        ContentResolver resolver = mContext.getContentResolver();
+        Uri uri = MediaStore.Files.getContentUri("external");
+        Log.i("zhengyu", "uri---->" + uri.toString());
 
-        String projection[]={MediaStore.Files.FileColumns.DATA};
-        String where=MediaStore.Files.FileColumns._ID+"=?";
+        String projection[] = {MediaStore.Files.FileColumns.DATA};
+        String where = MediaStore.Files.FileColumns._ID + "=?";
 
-        String selectArgs[]={mOpText.getText().toString()};
-        Cursor c=resolver.query(uri,projection,where,selectArgs,MediaStore.Files.FileColumns._ID);
-        if(c != null && c.getCount() > 0) {
+        String selectArgs[] = {mOpText.getText().toString()};
+        Cursor c = resolver.query(uri, projection, where, selectArgs, MediaStore.Files.FileColumns._ID);
+        if (c != null && c.getCount() > 0) {
             c.moveToNext();
             int index = c.getColumnIndex(MediaStore.Files.FileColumns.DATA);
             String data = c.getString(index);
             setTextToDisplayBoards(data);
-        }else{
-            setTextToDisplayBoards("no rowId# "+mOpText.getText().toString()+" record exists");
+        } else {
+            setTextToDisplayBoards("no rowId# " + mOpText.getText().toString() + " record exists");
         }
 
         c.close();
@@ -480,23 +511,23 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener{
         String rowId = mOpText.getText().toString();
 
         //   content://media/external//images/media/rowid
-        Uri imageUri = Uri.parse(MediaStore.Images.Media.EXTERNAL_CONTENT_URI+"/"+rowId);
+        Uri imageUri = Uri.parse(MediaStore.Images.Media.EXTERNAL_CONTENT_URI + "/" + rowId);
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.addCategory("android.intent.category.DEFAULT");
         intent.setType("image/*");
         intent.putExtra(Intent.EXTRA_STREAM, imageUri);
         startActivity(Intent.createChooser(intent, "share"));
 
-        setTextToDisplayBoards("Intent to share "+imageUri);
+        setTextToDisplayBoards("Intent to share " + imageUri);
 
     }
 
 
-    private void setTextToDisplayBoards(String text){
-        mDisplayBoards.setText(text + "\n" +mDisplayBoards.getText());
+    private void setTextToDisplayBoards(String text) {
+        mDisplayBoards.setText(text + "\n" + mDisplayBoards.getText());
     }
 
-    private void clearDisplayBoards(){
+    private void clearDisplayBoards() {
         mDisplayBoards.setText("");
     }
 }

@@ -40,7 +40,7 @@
 
         <activity android:name=".applock.AppLockActivity"/>
         <provider
-            android:authorities="demostore"
+            android:authorities="rainhu.com.demostore"
             android:name=".utils.DemoStoreProvider"
             android:exported="true"/>
 
