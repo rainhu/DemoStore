@@ -11,12 +11,14 @@
     <ImageView
         android:id="@+id/applock_applist_icon"
         android:layout_width="40dp"
-        android:layout_height="40dp" />
+        android:layout_height="40dp"
+        android:layout_marginRight="20dp"/>
 
     <TextView
         android:id="@+id/applock_applist_name"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
+        android:layout_marginRight="20dp"
         android:gravity="center"/>
 
     <Switch
@@ -26,6 +28,6 @@
         android:width="50dp"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
-        android:clickable="true"
+        android:clickable="false"
         android:focusable="false"/>
 </LinearLayout>

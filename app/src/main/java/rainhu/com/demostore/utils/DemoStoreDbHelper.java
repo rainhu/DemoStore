@@ -54,7 +54,7 @@ public class DemoStoreDbHelper extends SQLiteOpenHelper {
                 + AppLockMetadata.TABLE_COLUMN_PACKAGENAME + " VARCHAR,"
                 + AppLockMetadata.TABLE_COLUMN_LABELNAME + " VARCHAR COLLATE NOCASE,"
                 + AppLockMetadata.TABLE_COLUMN_STATUS + " VARCHAR,"
-                + AppLockMetadata.TABLE_COLUMN_ICON + " VARCHAR"
+                + AppLockMetadata.TABLE_COLUMN_ICON + " BLOB"
                 + ");");
     }
 

@@ -66,13 +66,15 @@ public class AppListAdapter extends BaseAdapter {
         viewHolder.aSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                int newStatus;
-                if (isChecked) {
-                    newStatus = AppLockMetadata.NEED_APPLOCK;
-                } else {
-                    newStatus = AppLockMetadata.NEED_APPLOCK;
-                }
-                AppLockUtils.updateAppStatus(mContext, appInfoList.get(position).getPackageName(), newStatus);
+//                int newStatus;
+//                if (isChecked) {
+//                    newStatus = AppLockMetadata.NEED_APPLOCK;
+//                } else {
+//                    newStatus = AppLockMetadata.NEED_NOT_APPLOCK;
+//                }
+//
+//                appInfoList.get(position).setStatus(newStatus);
+//                AppLockUtils.updateAppStatus(mContext, appInfoList.get(position).getPackageName(), newStatus);
             }
         });
 

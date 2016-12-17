@@ -31,7 +31,7 @@ public class DemoStoreProvider extends ContentProvider {
     private static final int TABLE_APPLOCK = 1;
 
     static {
-        URI_MATCHER.addURI("demostore", "/applock", TABLE_APPLOCK);
+        URI_MATCHER.addURI("rainhu.com.demostore", "/applock", TABLE_APPLOCK);
     }
 
 

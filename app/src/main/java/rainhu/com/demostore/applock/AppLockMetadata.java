@@ -7,6 +7,7 @@ import android.net.Uri;
  */
 
 public class AppLockMetadata {
+    public static final String TAG = "applock";
 
     public static final String AUTHORITIES = "rainhu.com.demostore";
     public static final Uri CONTNET_URI = Uri.parse("content://" + AUTHORITIES + "/applock");

@@ -38,11 +38,20 @@
         <service android:name="rainhu.com.demostore.powershot.PowershotService">
         </service>
 
+
         <activity android:name=".applock.AppLockActivity"/>
         <provider
             android:authorities="rainhu.com.demostore"
             android:name=".utils.DemoStoreProvider"
             android:exported="true"/>
+
+        <receiver android:name=".applock.ApplockReceiver" >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+
+            </intent-filter>
+        </receiver> />
+
 
     </application>
 

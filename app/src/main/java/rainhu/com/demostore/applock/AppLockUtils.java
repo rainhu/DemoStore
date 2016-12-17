@@ -9,21 +9,24 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.renderscript.Sampler;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 
-import rainhu.com.demostore.logger.Log;
 
 /**
  * Created by huzhengyu on 16-12-15.
  */
 
 public class AppLockUtils {
+
     public static int updateAppStatus(Context context, String packageName, int newStatus) {
+        Log.i(AppLockMetadata.TAG,"updateAppStatus, pacakgeName : "+packageName+" newStatus : "+newStatus);
+
         ContentResolver resolver = context.getContentResolver();
         ContentValues values = new ContentValues();
         values.put(AppLockMetadata.TABLE_COLUMN_STATUS, newStatus);
-        return resolver.update(AppLockMetadata.CONTNET_URI, values, AppLockMetadata.TABLE_COLUMN_PACKAGENAME + " = " + packageName, null);
+        return resolver.update(AppLockMetadata.CONTNET_URI, values, AppLockMetadata.TABLE_COLUMN_PACKAGENAME + " =? " , new String[]{packageName});
     }
 
     public static int getAppStatus(Context context, String packageName) {

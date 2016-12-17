@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.graphics.drawable.Drawable;
+import android.nfc.Tag;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.HandlerThread;
@@ -32,7 +33,7 @@ import rainhu.com.demostore.R;
  */
 
 public class AppLockActivity extends Activity {
-    private List<AppInfo> appInfoList;
+    private List<AppInfo> mAppInfoList = null;
     private Context mContext;
 
     private ListView mAppListView;
@@ -41,14 +42,12 @@ public class AppLockActivity extends Activity {
     LinearLayout mContentLayout;
     LinearLayout mLodingLayout;
 
+    Cursor mCursor;
     private AppLoaderTask mLoaderTask = null;
 
 //
 //    HandlerThread = new HandlerThread
 //    HandlerThread ht = new HandlerThread(){}
-
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +57,9 @@ public class AppLockActivity extends Activity {
         mContentLayout = (LinearLayout) findViewById(R.id.applock_content);
         mLodingLayout = (LinearLayout) findViewById(R.id.applock_loading);
         mAppListView = (ListView) findViewById(R.id.applock_applist);
+
+        mAppInfoList = new ArrayList<AppInfo>();
+
 
     }
 
@@ -78,41 +80,83 @@ public class AppLockActivity extends Activity {
 
         @Override
         protected Void doInBackground(Void... params) {
-            getAllApps(mContext);
+            //getAllApps(mContext);
+            freshAppInfoList(mContext);
             return null;
 
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            mAppListAdapter = new AppListAdapter(mContext, appInfoList);
-            mAppListView.setAdapter(mAppListAdapter);
 
-            mAppListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    AppListAdapter.AppInfoViewHolder viewholder = (AppListAdapter.AppInfoViewHolder) view.getTag();
-                    final AppInfo appInfo = mAppListAdapter.getItem(position);
-                    int newStatus;
-                    if (viewholder.aSwitch.isChecked()) {
-                        viewholder.aSwitch.setChecked(false);
-                        newStatus = AppLockMetadata.NEED_APPLOCK;
-                    } else {
-                        viewholder.aSwitch.setChecked(true);
-                        newStatus = AppLockMetadata.NEED_APPLOCK;
+            if (mAppInfoList != null) {
+                mAppListAdapter = new AppListAdapter(mContext, mAppInfoList);
+                mAppListView.setAdapter(mAppListAdapter);
+
+                mAppListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        AppListAdapter.AppInfoViewHolder viewholder = (AppListAdapter.AppInfoViewHolder) view.getTag();
+                        final AppInfo appInfo = mAppListAdapter.getItem(position);
+                        Log.i(AppLockMetadata.TAG, "onItemClick");
+                        int newStatus;
+                        if (viewholder.aSwitch.isChecked()) {
+                            viewholder.aSwitch.setChecked(false);
+                            newStatus = AppLockMetadata.NEED_NOT_APPLOCK;
+
+                        } else {
+                            viewholder.aSwitch.setChecked(true);
+                            newStatus = AppLockMetadata.NEED_APPLOCK;
+
+                        }
+                        appInfo.setStatus(newStatus);
+                        AppLockUtils.updateAppStatus(mContext, mAppInfoList.get(position).getPackageName(), newStatus);
                     }
-                    AppLockUtils.updateAppStatus(mContext, appInfoList.get(position).getPackageName(), newStatus);
-                }
-            });
+                });
 
+            }
             mLodingLayout.setVisibility(View.GONE);
             mContentLayout.setVisibility(View.VISIBLE);
 
         }
     }
 
-    private void getAllApps(Context context) {
-        appInfoList = new ArrayList<AppInfo>();
+    private void freshAppInfoList(Context context) {
+        String[] projection = new String[]{
+                AppLockMetadata.TABLE_COLUMN_PACKAGENAME,
+                AppLockMetadata.TABLE_COLUMN_ICON,
+                AppLockMetadata.TABLE_COLUMN_LABELNAME,
+                AppLockMetadata.TABLE_COLUMN_STATUS
+        };
+
+        mCursor = context.getContentResolver().query(AppLockMetadata.CONTNET_URI, projection, null, null, null);
+        if (mCursor != null && mCursor.getCount() > 0) {
+            //load from DB
+            if (mAppInfoList != null) {
+                mAppInfoList.clear();
+
+                while (mCursor.moveToNext()) {
+                    int packageNameIndex = mCursor.getColumnIndex(AppLockMetadata.TABLE_COLUMN_PACKAGENAME);
+                    int iconIndex = mCursor.getColumnIndex(AppLockMetadata.TABLE_COLUMN_ICON);
+                    int labelIndex = mCursor.getColumnIndex(AppLockMetadata.TABLE_COLUMN_LABELNAME);
+                    int statusIndex = mCursor.getColumnIndex(AppLockMetadata.TABLE_COLUMN_STATUS);
+
+                    AppInfo appInfo = new AppInfo();
+                    appInfo.setPackageName(mCursor.getString(packageNameIndex));
+                    appInfo.setAppIcon(AppLockUtils.changeByteToDrawable(mContext, mCursor.getBlob(iconIndex)));
+                    appInfo.setAppLabel(mCursor.getString(labelIndex));
+                    appInfo.setStatus(mCursor.getInt(statusIndex));
+                    mAppInfoList.add(appInfo);
+                }
+            }
+        } else {
+            getAllAppInfoFromPackageManager(mContext);
+            insertAppInfoToDb(mAppInfoList);
+        }
+    }
+
+
+    private void getAllAppInfoFromPackageManager(Context context) {
 
 
         PackageManager mManager = context.getPackageManager();
@@ -123,8 +167,8 @@ public class AppLockActivity extends Activity {
 
         //根据名字排序
         Collections.sort(resolveInfos, new ResolveInfo.DisplayNameComparator(mManager));
-        if (appInfoList != null) {
-            appInfoList.clear();
+        if (mAppInfoList != null) {
+            mAppInfoList.clear();
             for (ResolveInfo reInfo : resolveInfos) {
                 String packageName = reInfo.activityInfo.packageName;
 
@@ -144,13 +188,12 @@ public class AppLockActivity extends Activity {
                 appInfo.setAppIcon(icon);
                 appInfo.setPackageName(packageName);
                 appInfo.setStatus(AppLockMetadata.NEED_NOT_APPLOCK);
-                appInfoList.add(appInfo);
+                mAppInfoList.add(appInfo);
             }
         }
     }
 
-    private void insertAppInfoToDb() {
-        getAllApps(mContext);
+    private void insertAppInfoToDb(List<AppInfo> appInfoList) {
 
         ContentValues[] arrayValues = new ContentValues[appInfoList.size()];
 
@@ -188,7 +231,12 @@ public class AppLockActivity extends Activity {
         }
 
         cursor.close();
-
     }
 
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mCursor.close();
+    }
 }
