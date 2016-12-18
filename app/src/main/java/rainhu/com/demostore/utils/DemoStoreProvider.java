@@ -44,7 +44,6 @@ public class DemoStoreProvider extends ContentProvider {
     @Nullable
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder) {
-        Log.e("zhengyu","uri :"+uri.toString());
         SQLiteQueryBuilder qb = new SQLiteQueryBuilder();
         SQLiteDatabase db = mDemoStoreDbHelper.getReadableDatabase();
         qb.setTables(getTableName(uri));

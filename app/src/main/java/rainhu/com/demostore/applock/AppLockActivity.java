@@ -1,6 +1,7 @@
 package rainhu.com.demostore.applock;
 
 import android.app.Activity;
+import android.app.usage.UsageStatsManager;
 import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
@@ -13,6 +14,7 @@ import android.nfc.Tag;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.HandlerThread;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -49,6 +51,19 @@ public class AppLockActivity extends Activity {
 //    HandlerThread = new HandlerThread
 //    HandlerThread ht = new HandlerThread(){}
 
+    //判断调用该设备中“有权查看使用权限的应用”这个选项的APP有没有打开
+    private boolean hasUsageStatsPermission() {
+        long ts = System.currentTimeMillis();
+        UsageStatsManager usageStatsManager = (UsageStatsManager)
+                getApplicationContext() .getSystemService(Context.USAGE_STATS_SERVICE);
+        List queryUsageStats = usageStatsManager.queryUsageStats(
+                UsageStatsManager.INTERVAL_BEST, 0, ts);
+        if (queryUsageStats == null || queryUsageStats.isEmpty()) {
+            return false;
+        }
+        return true;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,6 +75,16 @@ public class AppLockActivity extends Activity {
 
         mAppInfoList = new ArrayList<AppInfo>();
 
+        if(!hasUsageStatsPermission()){
+            Intent intent = new Intent( Settings.ACTION_USAGE_ACCESS_SETTINGS);
+            startActivity(intent);
+        }
+
+
+
+        Intent intent = new Intent();
+        intent.setClass(AppLockActivity.this, ApplockService.class);
+        startService(intent);
 
     }
 

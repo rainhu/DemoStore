@@ -16,10 +16,14 @@ public class ApplockReceiver extends BroadcastReceiver {
             return;
         }
 
+
         if(Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())){
             Log.i(AppLockMetadata.TAG,"boot_complete");
 
 
+        }else if(Intent.ACTION_SCREEN_OFF.equals(intent.getAction())){
+            Log.i(AppLockMetadata.TAG,"ACTION_SCREEN_OFF");
+            AppLockUtils.recoverAllAppsFromUnlockedToNeedLockStatus(context);
         }
 
     }
