@@ -84,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.threadBtn:
                 startActivity(new Intent(this, ThreadDemoActivity.class));
+                break;
             case R.id.applockBtn:
                 startActivity(new Intent(this, AppLockActivity.class));
                 break;
