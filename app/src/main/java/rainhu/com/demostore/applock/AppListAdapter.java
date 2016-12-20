@@ -12,6 +12,8 @@ import android.widget.TextView;
 
 import java.util.List;
 
+import butterknife.ButterKnife;
+import butterknife.InjectView;
 import rainhu.com.demostore.R;
 import rainhu.com.demostore.logger.Log;
 
@@ -50,10 +52,7 @@ public class AppListAdapter extends BaseAdapter {
         AppInfoViewHolder viewHolder = null;
         if (convertView == null) {
             convertView = mInflater.inflate(R.layout.applock_item, null);
-            viewHolder = new AppInfoViewHolder();
-            viewHolder.app_icon = (ImageView) convertView.findViewById(R.id.applock_applist_icon);
-            viewHolder.app_name = (TextView) convertView.findViewById(R.id.applock_applist_name);
-            viewHolder.aSwitch = (Switch) convertView.findViewById(R.id.applock_applist_switch);
+            viewHolder = new AppInfoViewHolder(convertView);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (AppInfoViewHolder) convertView.getTag();
@@ -82,8 +81,12 @@ public class AppListAdapter extends BaseAdapter {
     }
 
     public class AppInfoViewHolder {
-        public ImageView app_icon;
-        public TextView app_name;
-        public Switch aSwitch;
+        @InjectView(R.id.applock_applist_icon) ImageView app_icon;
+        @InjectView(R.id.applock_applist_name) TextView app_name;
+        @InjectView(R.id.applock_applist_switch) Switch aSwitch;
+
+        public AppInfoViewHolder(View view){
+            ButterKnife.inject(this, view);
+        }
     }
 }

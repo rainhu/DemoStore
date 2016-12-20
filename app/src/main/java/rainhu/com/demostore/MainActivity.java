@@ -14,6 +14,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import butterknife.ButterKnife;
+import butterknife.InjectView;
+import butterknife.InjectViews;
+import butterknife.OnClick;
 import rainhu.com.demostore.activity.AboutActivity;
 import rainhu.com.demostore.activity.AnimationActivity;
 import rainhu.com.demostore.applock.AppLockActivity;
@@ -22,14 +26,25 @@ import rainhu.com.demostore.activity.StorageFillerActivity;
 import rainhu.com.demostore.powershot.PowershotActivity;
 import rainhu.com.demostore.activity.ThreadDemoActivity;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity {
+    @InjectView(R.id.storageFillerBtn)
+    Button storageFillerBtn;
 
-    private Button storageFillerBtn;
-    private Button mediaDemoBtn;
-    private Button animationBtn;
-    private Button powershotBtn;
-    private Button threadBtn;
-    private Button applockBtn;
+    @InjectView(R.id.mediaDemoBtn)
+    Button mediaDemoBtn;
+
+    @InjectView(R.id.animationBtn)
+    Button animationBtn;
+
+    @InjectView(R.id.powershotBtn)
+    Button powershotBtn;
+
+    @InjectView(R.id.threadBtn)
+    Button threadBtn;
+
+    @InjectView(R.id.applockBtn)
+    Button applockBtn;
+
     private long lastBackPressedTime = 0;
 
     @Override
@@ -37,47 +52,35 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        storageFillerBtn = (Button) findViewById(R.id.storageFillerBtn);
-        storageFillerBtn.setOnClickListener(this);
-
-        mediaDemoBtn = (Button) findViewById(R.id.mediaDemoBtn);
-        mediaDemoBtn.setOnClickListener(this);
-
-        animationBtn = (Button) findViewById(R.id.animationBtn);
-        animationBtn.setOnClickListener(this);
-
-        powershotBtn = (Button) findViewById(R.id.powershotBtn);
-        powershotBtn.setOnClickListener(this);
-
-        threadBtn = (Button) findViewById(R.id.threadBtn);
-        threadBtn.setOnClickListener(this);
+        ButterKnife.inject(this);
 
         Slide slide = (Slide) TransitionInflater.from(this).inflateTransition(R.transition.activity_slide);
         getWindow().setExitTransition(slide);
-
-        applockBtn = (Button) findViewById(R.id.applockBtn);
-        applockBtn.setOnClickListener(this);
-
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        Log.i("zhengyu", "activity touch");
         return super.onTouchEvent(event);
     }
 
-    @Override
-    public void onClick(View view) {
-        int viewId = view.getId();
-        switch (viewId) {
+    @OnClick( {
+            R.id.storageFillerBtn,
+            R.id.mediaDemoBtn ,
+            R.id.applockBtn ,
+            R.id.powershotBtn ,
+            R.id.threadBtn ,
+            R.id.animationBtn
+    })
+    public void pickView(View view){
+        switch (view.getId()){
             case R.id.storageFillerBtn:
                 startActivity(new Intent(this, StorageFillerActivity.class));
                 break;
             case R.id.mediaDemoBtn:
                 startActivity(new Intent(this, MediaDemoActivity.class));
                 break;
-            case R.id.animationBtn:
-                startActivity(new Intent(this, AnimationActivity.class));
+            case R.id.applockBtn:
+                startActivity(new Intent(this, AppLockActivity.class));
                 break;
             case R.id.powershotBtn:
                 startActivity(new Intent(this, PowershotActivity.class));
@@ -85,14 +88,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.threadBtn:
                 startActivity(new Intent(this, ThreadDemoActivity.class));
                 break;
-            case R.id.applockBtn:
-                startActivity(new Intent(this, AppLockActivity.class));
-                break;
-            default:
+            case R.id.animationBtn:
+                startActivity(new Intent(this, AnimationActivity.class));
                 break;
         }
     }
-
 
     @Override
     public void onBackPressed() {
