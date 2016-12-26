@@ -55,6 +55,11 @@
                 android:layout_height="match_parent"
                 android:text="thread" />
 
+            <Button
+                android:id="@+id/logToolBtn"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="logtool"/>
         </LinearLayout>
     </ScrollView>
 

@@ -20,6 +20,7 @@ import butterknife.InjectViews;
 import butterknife.OnClick;
 import rainhu.com.demostore.activity.AboutActivity;
 import rainhu.com.demostore.activity.AnimationActivity;
+import rainhu.com.demostore.activity.LogToolActivity;
 import rainhu.com.demostore.applock.AppLockActivity;
 import rainhu.com.demostore.mediademo.MediaDemoActivity;
 import rainhu.com.demostore.activity.StorageFillerActivity;
@@ -45,6 +46,10 @@ public class MainActivity extends AppCompatActivity {
     @InjectView(R.id.applockBtn)
     Button applockBtn;
 
+
+    @InjectView(R.id.logToolBtn)
+    Button logtoolBtn;
+
     private long lastBackPressedTime = 0;
 
     @Override
@@ -69,7 +74,8 @@ public class MainActivity extends AppCompatActivity {
             R.id.applockBtn ,
             R.id.powershotBtn ,
             R.id.threadBtn ,
-            R.id.animationBtn
+            R.id.animationBtn,
+            R.id.logToolBtn
     })
     public void pickView(View view){
         switch (view.getId()){
@@ -90,6 +96,9 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.animationBtn:
                 startActivity(new Intent(this, AnimationActivity.class));
+                break;
+            case R.id.logToolBtn:
+                startActivity(new Intent(this, LogToolActivity.class));
                 break;
         }
     }

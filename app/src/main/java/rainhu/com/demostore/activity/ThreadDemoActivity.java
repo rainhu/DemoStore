@@ -4,6 +4,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
+
 import rainhu.com.demostore.R;
 import rainhu.com.demostore.logger.Log;
 
@@ -59,6 +65,26 @@ public class ThreadDemoActivity extends LoggingActivity{
         super.onResume();
 
         Log.i("hzy","test");
+
+        connect();
+
+    }
+
+    private void connect() {
+        String myString = null;
+        try{
+            URL myURL = new URL("http://www.google.com/robots.txt");
+            URLConnection ucon = myURL.openConnection();
+            InputStream is = ucon.getInputStream();
+
+        } catch (MalformedURLException e) {
+            Log.e("hzy","e:"+e.toString());
+            e.printStackTrace();
+        } catch (IOException e) {
+            Log.e("hzy","e:"+e.toString());
+            e.printStackTrace();
+        }
+
     }
 
     //basic use of handler

@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
@@ -35,6 +36,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import butterknife.InjectView;
+import butterknife.OnClick;
 import rainhu.com.demostore.R;
 
 /**
@@ -67,7 +70,41 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener 
     private static final int READ_REQUEST_CODE = 42;
     private static final int WRITE_REQUEST_CODE = 43;
 
+    @InjectView(R.id.mediademo_insertBtn)
+    Button insertBtn;
 
+    @OnClick(R.id.mediademo_insertBtn)
+    public void onInsertBtnClicked(){
+        Log.i("hzy","insert");
+
+
+        String fileDir = Environment.getExternalStorageDirectory() +
+                "/" + getClass().getCanonicalName();
+        String fileName = fileDir + "/Test.Mp3";
+       // writeFile(R.raw.testmp3, fileName);
+
+        String volumeName = "external";
+        Uri allFilesUri = MediaStore.Files.getContentUri(volumeName);
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.MediaColumns.DATA, fileDir + "/test.mp3");
+        Uri fileUri = getContentResolver().insert(allFilesUri, values);
+        try {
+           // ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(fileUri, "r");
+           // pfd.close();
+        } finally {
+           // mResolver.delete(fileUri, null, null);
+            new File(fileName).delete();
+            new File(fileDir).delete();
+        }
+    }
+
+    private void writeFile(int resid, String path) throws IOException {
+        File out = new File(path);
+        File dir = out.getParentFile();
+        dir.mkdirs();
+        FileCopyHelper copier = new FileCopyHelper(mContext);
+        copier.copyToExternalStorage(resid, out);
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -132,6 +169,7 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+
             case R.id.mediademo_shareBtn:
                 onshareBtnClicked();
                 break;
