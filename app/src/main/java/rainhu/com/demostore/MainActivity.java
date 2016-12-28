@@ -50,6 +50,9 @@ public class MainActivity extends AppCompatActivity {
     @InjectView(R.id.logToolBtn)
     Button logtoolBtn;
 
+    @InjectView(R.id.toolbar)
+    Toolbar toolbar ;
+
     private long lastBackPressedTime = 0;
 
     @Override
@@ -58,6 +61,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         ButterKnife.inject(this);
+
+        setSupportActionBar(toolbar);
 
         Slide slide = (Slide) TransitionInflater.from(this).inflateTransition(R.transition.activity_slide);
         getWindow().setExitTransition(slide);

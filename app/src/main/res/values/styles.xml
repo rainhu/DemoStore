@@ -1,16 +1,39 @@
 <resources>
 
-    <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
+    <style name="BaseTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!--主色-->
         <item name="colorPrimary">@color/colorPrimary</item>
+        <!--深色主色-->
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <!--醒目主色-->
         <item name="colorAccent">@color/colorAccent</item>
-        
-        
-        <item name="android:windowEnterTransition">@transition/explode</item>
-        <item name="android:windowExitTransition">@transition/explode</item>
+        <!--抽屉开关样式-->
 
+        <!-- <item name="drawerArrowStyle">@style/DrawerArrowStyle</item> -->
+    </style>
+
+
+    <style name="AppTheme" parent="BaseTheme">
+        <!--窗体透明-->
+        <item name="android:windowIsTranslucent">true</item>
+        <!--窗体背景-->
+        <item name="android:windowBackground">@android:color/transparent</item>
+    </style>
+
+
+    <style name="LaunchTheme" parent="Theme.AppCompat.NoActionBar">
+        <!--窗体背景，这个背景能在第一时间显示，可以用作启动界面，但此windows不可再使用view-->
+        <!-- <item name="android:background">@drawable/bg_launch</item> -->
+    </style>
+
+    <style name="MainTheme" parent="BaseTheme">
+        <!--窗体动画-->
+        <item name="android:windowAnimationStyle">@android:style/Animation.Translucent</item>
+    </style>
+
+    <style name="DrawerArrowStyle" parent="Widget.AppCompat.DrawerArrowToggle">
+        <!--抽屉开关箭头颜色-->
+        <item name="color">@android:color/white</item>
     </style>
 
 </resources>
