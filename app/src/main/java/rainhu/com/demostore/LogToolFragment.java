@@ -1,8 +1,14 @@
-package rainhu.com.demostore.activity;
+package rainhu.com.demostore;
 
-import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 
 import java.io.BufferedReader;
@@ -15,17 +21,12 @@ import java.util.ArrayList;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
-import rainhu.com.demostore.R;
-
-import android.util.Log;
-
-
 
 /**
- * Created by huzhengyu on 16-12-26.
+ * Created by huzhengyu on 16-12-29.
  */
 
-public class LogToolActivity extends Activity{
+public class LogToolFragment extends Fragment {
     boolean mIsLogging = false;
 
     @InjectView(R.id.startLogging)
@@ -36,21 +37,33 @@ public class LogToolActivity extends Activity{
 
     @OnClick(R.id.startLogging)
     public void onStartLoggingClicked(){
-        catchingLog();
+        //catchingLog();
+        install();
+    }
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_logtool, container , false);
+        ButterKnife.inject(this , view);
+        return view;
+    }
+    private void install() {
+        //"/sdcard/aiqiyi_80740.apk"
+        ///String path = "content://downloads/all_downloads/4";
+//        PackageInfo packageinfo = getPackageManager().getPackageArchiveInfo(path , 0);
+//
+//        packageinfo.applicationInfo.sourceDir = path;
+//        packageinfo.applicationInfo.publicSourceDir = path;
+        String path = "content://downloads/my_downloads/9";
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setDataAndType(Uri.parse(path) ,"application/vnd.android.package-archive");
+        getContext().startActivity(intent);
     }
 
     @OnClick(R.id.stopLogging)
     public void onStopLoggingClicked(){
         stopCatchingLop();
-    }
-
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_logtool);
-        ButterKnife.inject(this);
-
     }
 
 
@@ -75,7 +88,7 @@ public class LogToolActivity extends Activity{
             StringBuilder builder = new StringBuilder();
 
             while (line != null && mIsLogging){
-               // log.app
+                // log.app
                 builder.append(line);
                 Log.i("hzy", line);
             }
@@ -91,7 +104,7 @@ public class LogToolActivity extends Activity{
             FileWriter fileWrite = new FileWriter(file);
             fileWrite.write(builder.toString());
             fileWrite.close();
-            
+
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -106,4 +119,5 @@ public class LogToolActivity extends Activity{
         mIsLogging = false;
 
     }
+
 }
