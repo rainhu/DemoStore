@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/binderDemoBtn_bindlocalservice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="bindlocalservice"/>
+
+    <Button
+        android:id="@+id/binderDemoBtn_unbindlocalservice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="unbindlocalservice"/>
+
+    <Button
+        android:id="@+id/binderDemoBtn_bindremoteservice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="bindlocalservice"/>
+
+    <Button
+        android:id="@+id/binderDemoBtn_unbindremoteservice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="unbindlocalservice"/>
+
+    <Button
+        android:id="@+id/binderDemoBtn_bindAIDLRemoteService"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="bindAIDLService"/>
+
+    <Button
+        android:id="@+id/binderDemoBtn_unbindAIDLRemoteService"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="unbindAIDLService"/>
+    <!--
+    <include
+        layout="@layout/logging"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_gravity="bottom"
+        android:layout_weight="0.25" />
+    -->
+
+</LinearLayout>

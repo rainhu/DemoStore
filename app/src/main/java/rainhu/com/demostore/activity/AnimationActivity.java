@@ -12,6 +12,8 @@ import rainhu.com.demostore.R;
 
 public class AnimationActivity extends Activity {
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

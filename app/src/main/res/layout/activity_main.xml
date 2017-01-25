@@ -7,6 +7,7 @@
     android:orientation="vertical"
     tools:context="rainhu.com.demostore.MainActivity">
 
+
     <include layout="@layout/toolbar" />
 
     <ScrollView
@@ -21,11 +22,6 @@
             android:paddingRight="@dimen/activity_horizontal_margin"
             android:paddingTop="@dimen/activity_vertical_margin"
             android:orientation="vertical">
-
-            <FrameLayout
-                android:id="@+id/fragment_container"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
 
             <Button
                 android:id="@+id/storageFillerBtn"
@@ -58,10 +54,21 @@
                 android:text="Powershot" />
 
             <Button
-                android:id="@+id/threadBtn"
+                android:id="@+id/binderDemoBtn"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:text="thread" />
+                android:text="binderDemo" />
+
+            <Button
+                android:id="@+id/tempBtn"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="temp"/>
+
+            <FrameLayout
+                android:id="@+id/fragment_container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
 
         </LinearLayout>
     </ScrollView>

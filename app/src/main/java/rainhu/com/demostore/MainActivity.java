@@ -14,20 +14,19 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import butterknife.InjectViews;
 import butterknife.OnClick;
 import rainhu.com.demostore.activity.AboutActivity;
 import rainhu.com.demostore.activity.AnimationActivity;
+import rainhu.com.demostore.activity.TempActivity;
 import rainhu.com.demostore.applock.AppLockActivity;
 import rainhu.com.demostore.mediademo.MediaDemoActivity;
 import rainhu.com.demostore.activity.StorageFillerActivity;
 import rainhu.com.demostore.powershot.PowershotActivity;
-import rainhu.com.demostore.activity.ThreadDemoActivity;
+import rainhu.com.demostore.binder.BinderDemoActivity;
 
 public class MainActivity extends AppCompatActivity {
     @InjectView(R.id.storageFillerBtn)
@@ -42,14 +41,17 @@ public class MainActivity extends AppCompatActivity {
     @InjectView(R.id.powershotBtn)
     Button powershotBtn;
 
-    @InjectView(R.id.threadBtn)
-    Button threadBtn;
+    @InjectView(R.id.binderDemoBtn)
+    Button binderDemoBtn;
 
     @InjectView(R.id.applockBtn)
     Button applockBtn;
 
     @InjectView(R.id.toolbar)
     Toolbar toolbar ;
+
+    @InjectView(R.id.tempBtn)
+    Button tempBtn;
 
     //FrameLayout mFragmentContainer;
 
@@ -65,7 +67,8 @@ public class MainActivity extends AppCompatActivity {
 
         ButterKnife.inject(this);
 
-        setSupportActionBar(toolbar);
+
+        initToolBar();
 
         FragmentManager fm = getSupportFragmentManager();
         Fragment fragment = fm.findFragmentById(R.id.fragment_container);
@@ -80,6 +83,11 @@ public class MainActivity extends AppCompatActivity {
         getWindow().setExitTransition(slide);
     }
 
+    private void initToolBar() {
+        setSupportActionBar(toolbar);
+
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         return super.onTouchEvent(event);
@@ -90,8 +98,9 @@ public class MainActivity extends AppCompatActivity {
             R.id.mediaDemoBtn ,
             R.id.applockBtn ,
             R.id.powershotBtn ,
-            R.id.threadBtn ,
+            R.id.binderDemoBtn ,
             R.id.animationBtn,
+            R.id.tempBtn,
     })
     public void pickView(View view){
         switch (view.getId()){
@@ -107,11 +116,14 @@ public class MainActivity extends AppCompatActivity {
             case R.id.powershotBtn:
                 startActivity(new Intent(this, PowershotActivity.class));
                 break;
-            case R.id.threadBtn:
-                startActivity(new Intent(this, ThreadDemoActivity.class));
+            case R.id.binderDemoBtn:
+                startActivity(new Intent(this, BinderDemoActivity.class));
                 break;
             case R.id.animationBtn:
                 startActivity(new Intent(this, AnimationActivity.class));
+                break;
+            case R.id.tempBtn:
+                startActivity(new Intent(this, TempActivity.class));
                 break;
         }
     }
@@ -133,19 +145,18 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    private Toolbar.OnMenuItemClickListener onMenuItemClick = new Toolbar.OnMenuItemClickListener() {
-        @Override
-        public boolean onMenuItemClick(MenuItem menuItem) {
-            switch (menuItem.getItemId()) {
-                case R.id.menu_about:
-                    goAboutActivity();
-                    break;
-            }
-            return true;
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+            case R.id.menu_about:
+                Log.i("hzy","about");
+                goAboutActivity();
+                break;
         }
+        return true;
+    }
 
-
-    };
 
     private void goAboutActivity() {
         Intent intent = new Intent(this, AboutActivity.class);

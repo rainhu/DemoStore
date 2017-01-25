@@ -25,4 +25,5 @@ dependencies {
     compile 'com.jaredrummler:android-processes:1.0.8'
     compile 'com.jakewharton:butterknife:5.1.1'
 
+    compile 'com.google.android.gms:play-services-appindexing:8.4.0'
 }

@@ -30,6 +30,8 @@ public class PowershotActivity extends Activity {
             }
         });
 
+        //bindService()
+
     }
 
 

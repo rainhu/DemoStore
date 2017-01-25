@@ -18,6 +18,8 @@ import android.view.Gravity;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import java.io.FileDescriptor;
+import java.io.PrintWriter;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -204,5 +206,15 @@ public class PowershotService extends Service{
     }
     private void updateBallViewData(){
         mBallView.setTipText(Utils.getUsedMemPercent(getApplicationContext()));
+    }
+
+    @Override
+    protected void dump(FileDescriptor fd, PrintWriter writer, String[] args) {
+        super.dump(fd, writer, args);
+
+
+
+
+
     }
 }
