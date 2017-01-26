@@ -14,17 +14,26 @@ import android.widget.Toast;
 public class AIDLRemoteService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
-        if (IAIDLRemoteService.class.getName().equals(intent.getAction())){
-            return mRemoteBinder;
-        }
-        return null;
+//        if (IAIDLRemoteService.class.getName().equals(intent.getAction())){
+//            return mRemoteBinder;
+//        }
+//        return null;
+
+        return new AIDLRemoteServiceImpl();
     }
 
-    //匿名内部类
-    IAIDLRemoteService.Stub mRemoteBinder = new IAIDLRemoteService.Stub(){
+//    //匿名内部类
+//    IAIDLRemoteService.Stub mRemoteBinder = new IAIDLRemoteService.Stub(){
+//        @Override
+//        public void sayHello() throws RemoteException {
+//            Toast.makeText(AIDLRemoteService.this, "hello , I'm aidlremoteservice",Toast.LENGTH_SHORT).show();
+//        }
+//    };
+
+    class AIDLRemoteServiceImpl extends IAIDLRemoteService.Stub{
         @Override
         public void sayHello() throws RemoteException {
             Toast.makeText(AIDLRemoteService.this, "hello , I'm aidlremoteservice",Toast.LENGTH_SHORT).show();
         }
-    };
+    }
 }

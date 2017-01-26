@@ -77,6 +77,11 @@
         
         <service android:name=".binder.RemoteService" android:process=":remote"> </service>
 
+        <service android:name=".binder.AIDLRemoteService">
+            <intent-filter>
+                <action android:name="rainhu.com.demostore.binder.IAIDLRemoteService"/>
+            </intent-filter>
+        </service>
         <!-- ATTENTION: This was auto-generated to add Google Play services to your project for
      App Indexing.  See https://g.co/AppIndexing/AndroidStudio for more information. -->
         <meta-data
