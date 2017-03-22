@@ -24,6 +24,6 @@ dependencies {
     compile "com.github.tarek360:instacapture:1.2.2"
     compile 'com.jaredrummler:android-processes:1.0.8'
     compile 'com.jakewharton:butterknife:5.1.1'
-
     compile 'com.google.android.gms:play-services-appindexing:8.4.0'
+    compile 'com.google.android.gms:play-services-gcm:8.1.0'
 }

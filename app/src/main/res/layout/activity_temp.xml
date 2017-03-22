@@ -2,10 +2,38 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
+
     <Button
         android:id="@+id/alertDialogBtn"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="alertDialog"/>
+        android:layout_width="100dp"
+        android:layout_height="50dp"
+        android:text="alertDialog"
+        android:visibility="gone"/>
+
+
+     <TextView
+         android:text="EditText : "
+         android:textSize="20dp"
+         android:layout_width="wrap_content"
+         android:layout_height="wrap_content" />
+    <EditText
+        android:layout_width="300dp"
+        android:layout_height="50dp"
+        />
+
+        android:orientation="horizontal">
+        <TextView
+            android:text="MultiAutoCompleteTextView : "
+            android:textSize="20dp"
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+        <MultiAutoCompleteTextView android:layout_height="50dp"
+
+            android:layout_width="300dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:longClickable="true">
+        </MultiAutoCompleteTextView>
 
 </LinearLayout>

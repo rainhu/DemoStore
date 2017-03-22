@@ -64,7 +64,7 @@ public class ApplockService extends Service {
        // Activity topActivity =  AppLockUtils.getTopResumedActivity();
 
 
-        String packageName = AppLockUtils.getRunningAppForApiLargerThan21(mContext);
+        String packageName = AppLockUtils.getTopRunningApp(mContext);
 
         if("rainhu.com.demostore".equals(packageName)){
             return;

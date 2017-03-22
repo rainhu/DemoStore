@@ -15,11 +15,16 @@ import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.gcm.GcmNetworkManager;
+import com.google.android.gms.gcm.OneoffTask;
+import com.google.android.gms.gcm.PeriodicTask;
+import com.google.android.gms.gcm.Task;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import rainhu.com.demostore.R;
+import rainhu.com.demostore.temp.MyGcmTaskService;
 
 /**
  * Created by huzhengyu on 17-1-17.
@@ -36,12 +41,20 @@ public class TempActivity extends Activity {
      */
     private GoogleApiClient client;
 
+    private GcmNetworkManager mGcmNetworkManager;
+
     @OnClick(R.id.alertDialogBtn)
 
     public void onALertDialogBtnClicked() {
         final AlertDialog.Builder alert = new AlertDialog.Builder(this);
 
         View view = getLayoutInflater().inflate(R.layout.alert_dialog, null);
+
+
+
+
+
+
         Button btn = (Button) view.findViewById(R.id.openDialogBtn);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -68,6 +81,9 @@ public class TempActivity extends Activity {
                 // share();
               //  startActivity(new Intent(mContext, TestActivity.class));
                 share();
+
+
+
 
             }
         });
@@ -101,6 +117,28 @@ public class TempActivity extends Activity {
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+        mGcmNetworkManager = GcmNetworkManager.getInstance(this);
+
+        GcmNetworkManager mGcmNetworkManager = GcmNetworkManager.getInstance(this);
+//        PeriodicTask task = new PeriodicTask.Builder()
+//                .setService(MyGcmTaskService.class)
+//                .setTag(MyGcmTaskService.TAG)
+//                .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
+//                .setPersisted(true)
+//                .setPeriod(10L)
+//                .build();
+
+        Task task = new OneoffTask.Builder()
+                .setService(MyGcmTaskService.class)
+                .setExecutionWindow(0,30)
+                .setTag(MyGcmTaskService.TAG)
+                .setUpdateCurrent(false)
+                .setRequiredNetwork(Task.NETWORK_STATE_UNMETERED)
+                .setRequiresCharging(false)
+                .build();
+
+        mGcmNetworkManager.schedule(task);
+
     }
 
 

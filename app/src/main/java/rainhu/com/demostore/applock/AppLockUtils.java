@@ -1,6 +1,7 @@
 package rainhu.com.demostore.applock;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.usage.UsageStats;
 import android.app.usage.UsageStatsManager;
 import android.content.ContentResolver;
@@ -13,6 +14,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.renderscript.Sampler;
 import android.util.Log;
 
@@ -116,7 +118,16 @@ public class AppLockUtils {
         }
     }
 
-    public static String getRunningAppForApiLargerThan21(Context context) {
+    public static String getTopRunningApp(Context context) {
+
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP){
+            ActivityManager am = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
+            List<ActivityManager.RunningTaskInfo> appTasks = am.getRunningTasks(1);
+            if( null != appTasks && !appTasks.isEmpty()){
+                return appTasks.get(0).topActivity.getPackageName();
+            }
+        }
+
 
         UsageStatsManager usageStatsManager = (UsageStatsManager)
                 context.getSystemService(Context.USAGE_STATS_SERVICE);

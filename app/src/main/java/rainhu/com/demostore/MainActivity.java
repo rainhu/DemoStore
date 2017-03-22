@@ -1,3 +1,4 @@
+
 package rainhu.com.demostore;
 
 import android.support.v4.app.Fragment;
@@ -70,7 +71,9 @@ public class MainActivity extends AppCompatActivity {
 
         initToolBar();
 
+
         FragmentManager fm = getSupportFragmentManager();
+
         Fragment fragment = fm.findFragmentById(R.id.fragment_container);
         if(fragment == null){
             fragment = new LogToolFragment();
