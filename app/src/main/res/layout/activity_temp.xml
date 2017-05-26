@@ -7,9 +7,18 @@
         android:id="@+id/alertDialogBtn"
         android:layout_width="100dp"
         android:layout_height="50dp"
-        android:text="alertDialog"
-        android:visibility="gone"/>
+        android:text="ota" />
+    <CheckBox
+        android:id="@+id/factoryReset"
+        android:layout_width="150dp"
+        android:layout_height="50dp"
+        android:text="factoryReset"/>
 
+    <CheckBox
+        android:id="@+id/enterpriseReset"
+        android:layout_width="150dp"
+        android:layout_height="50dp"
+        android:text="enterpriseReset"/>
 
      <TextView
          android:text="EditText : "

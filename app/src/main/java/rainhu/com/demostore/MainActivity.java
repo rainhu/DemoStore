@@ -22,6 +22,7 @@ import butterknife.InjectView;
 import butterknife.OnClick;
 import rainhu.com.demostore.activity.AboutActivity;
 import rainhu.com.demostore.activity.AnimationActivity;
+import rainhu.com.demostore.activity.CameraTestActivity;
 import rainhu.com.demostore.activity.TempActivity;
 import rainhu.com.demostore.applock.AppLockActivity;
 import rainhu.com.demostore.mediademo.MediaDemoActivity;
@@ -54,6 +55,9 @@ public class MainActivity extends AppCompatActivity {
     @InjectView(R.id.tempBtn)
     Button tempBtn;
 
+    @InjectView(R.id.cameraBtn)
+    Button cameraBtn;
+
     //FrameLayout mFragmentContainer;
 
     //Fragment currentFragment;
@@ -74,13 +78,13 @@ public class MainActivity extends AppCompatActivity {
 
         FragmentManager fm = getSupportFragmentManager();
 
-        Fragment fragment = fm.findFragmentById(R.id.fragment_container);
-        if(fragment == null){
-            fragment = new LogToolFragment();
-            fm.beginTransaction()
-              .add(R.id.fragment_container, fragment)
-              .commit();
-        }
+//        Fragment fragment = fm.findFragmentById(R.id.fragment_container);
+//        if(fragment == null){
+//            fragment = new LogToolFragment();
+//            fm.beginTransaction()
+//              .add(R.id.fragment_container, fragment)
+//              .commit();
+//        }
 
         Slide slide = (Slide) TransitionInflater.from(this).inflateTransition(R.transition.activity_slide);
         getWindow().setExitTransition(slide);
@@ -104,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
             R.id.binderDemoBtn ,
             R.id.animationBtn,
             R.id.tempBtn,
+            R.id.cameraBtn,
     })
     public void pickView(View view){
         switch (view.getId()){
@@ -127,6 +132,9 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.tempBtn:
                 startActivity(new Intent(this, TempActivity.class));
+                break;
+            case R.id.cameraBtn:
+                startActivity(new Intent(this, CameraTestActivity.class));
                 break;
         }
     }

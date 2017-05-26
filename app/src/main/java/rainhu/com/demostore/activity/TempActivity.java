@@ -5,8 +5,15 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.hardware.camera2.CameraAccessException;
+import android.hardware.camera2.CameraManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.RecoverySystem;
+import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -19,6 +26,14 @@ import com.google.android.gms.gcm.GcmNetworkManager;
 import com.google.android.gms.gcm.OneoffTask;
 import com.google.android.gms.gcm.PeriodicTask;
 import com.google.android.gms.gcm.Task;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.LogRecord;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -43,18 +58,37 @@ public class TempActivity extends Activity {
 
     private GcmNetworkManager mGcmNetworkManager;
 
-    @OnClick(R.id.alertDialogBtn)
+    private Handler mHandler;
+    private HandlerThread mHandlerTHread;
 
+//    @OnClick(R.id.factoryData)
+//    public void onFactoryDataBtnClicked(){
+//        File fileName = new File("/dev/block/mmcblk0p3");
+//        String factorydata  = null;
+//        try {
+//            FileInputStream fis = new FileInputStream(fileName);
+//            fis.read(factorydata.getBytes());
+//
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
+    @OnClick(R.id.alertDialogBtn)
     public void onALertDialogBtnClicked() {
+        try {
+            RecoverySystem.installPackage(this, new File("/data/update.zip"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
+        /*
         final AlertDialog.Builder alert = new AlertDialog.Builder(this);
 
         View view = getLayoutInflater().inflate(R.layout.alert_dialog, null);
-
-
-
-
-
-
         Button btn = (Button) view.findViewById(R.id.openDialogBtn);
         btn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -97,6 +131,7 @@ public class TempActivity extends Activity {
                     }
                 });
         alert.show();
+        */
     }
 
     private void share() {
@@ -138,6 +173,47 @@ public class TempActivity extends Activity {
                 .build();
 
         mGcmNetworkManager.schedule(task);
+
+
+
+        mHandlerTHread = new HandlerThread("cameratest");
+        mHandlerTHread.start();
+        mHandler = new Handler(mHandlerTHread.getLooper());
+
+        CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        try {
+            final LinkedBlockingQueue<String> availableEventQueue = new LinkedBlockingQueue<>();
+            final LinkedBlockingQueue<String> unavailableEventQueue = new LinkedBlockingQueue<>();
+
+            CameraManager.AvailabilityCallback ac = new CameraManager.AvailabilityCallback(){
+                @Override
+                public void onCameraAvailable(@NonNull String cameraId) {
+                    availableEventQueue.offer(cameraId);
+                }
+
+                @Override
+                public void onCameraUnavailable(@NonNull String cameraId) {
+                    unavailableEventQueue.offer(cameraId);
+                }
+            };
+            cameraManager.registerAvailabilityCallback(ac, mHandler);
+
+
+
+            String [] cameraIdList = cameraManager.getCameraIdList();
+            for (String s : cameraIdList){
+                Log.i("ryan", "cameraId:"+s);
+            }
+            Log.i("ryan","availableEventQueueSize:"+availableEventQueue.size()+" unavailableEventQueueSize:"+unavailableEventQueue.size());
+
+
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+
+
+
+
 
     }
 
