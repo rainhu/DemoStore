@@ -1,9 +1,7 @@
 package rainhu.com.demostore.activity;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraManager;
@@ -14,32 +12,16 @@ import android.os.HandlerThread;
 import android.os.RecoverySystem;
 import android.support.annotation.NonNull;
 import android.util.Log;
-import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 
-import com.google.android.gms.appindexing.Action;
-import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.appindexing.Thing;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.gcm.GcmNetworkManager;
-import com.google.android.gms.gcm.OneoffTask;
-import com.google.android.gms.gcm.PeriodicTask;
-import com.google.android.gms.gcm.Task;
-
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.logging.LogRecord;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
 import rainhu.com.demostore.R;
-import rainhu.com.demostore.temp.MyGcmTaskService;
 
 /**
  * Created by huzhengyu on 17-1-17.
@@ -50,13 +32,6 @@ public class TempActivity extends Activity {
 
     @InjectView(R.id.alertDialogBtn)
     Button alertDialogBtn;
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    private GoogleApiClient client;
-
-    private GcmNetworkManager mGcmNetworkManager;
 
     private Handler mHandler;
     private HandlerThread mHandlerTHread;
@@ -149,33 +124,6 @@ public class TempActivity extends Activity {
         mContext = this;
         setContentView(R.layout.activity_temp);
         ButterKnife.inject(this);
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
-        mGcmNetworkManager = GcmNetworkManager.getInstance(this);
-
-        GcmNetworkManager mGcmNetworkManager = GcmNetworkManager.getInstance(this);
-//        PeriodicTask task = new PeriodicTask.Builder()
-//                .setService(MyGcmTaskService.class)
-//                .setTag(MyGcmTaskService.TAG)
-//                .setRequiredNetwork(Task.NETWORK_STATE_CONNECTED)
-//                .setPersisted(true)
-//                .setPeriod(10L)
-//                .build();
-
-        Task task = new OneoffTask.Builder()
-                .setService(MyGcmTaskService.class)
-                .setExecutionWindow(0,30)
-                .setTag(MyGcmTaskService.TAG)
-                .setUpdateCurrent(false)
-                .setRequiredNetwork(Task.NETWORK_STATE_UNMETERED)
-                .setRequiresCharging(false)
-                .build();
-
-        mGcmNetworkManager.schedule(task);
-
-
-
         mHandlerTHread = new HandlerThread("cameratest");
         mHandlerTHread.start();
         mHandler = new Handler(mHandlerTHread.getLooper());
@@ -211,46 +159,6 @@ public class TempActivity extends Activity {
             e.printStackTrace();
         }
 
-
-
-
-
     }
 
-
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    public Action getIndexApiAction() {
-        Thing object = new Thing.Builder()
-                .setName("Temp Page") // TODO: Define a title for the content shown.
-                // TODO: Make sure this auto-generated URL is correct.
-                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
-                .build();
-        return new Action.Builder(Action.TYPE_VIEW)
-                .setObject(object)
-                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
-                .build();
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
-        AppIndex.AppIndexApi.start(client, getIndexApiAction());
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        AppIndex.AppIndexApi.end(client, getIndexApiAction());
-        client.disconnect();
-    }
 }

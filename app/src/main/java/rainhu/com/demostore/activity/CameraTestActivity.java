@@ -44,6 +44,7 @@ import rainhu.com.demostore.R;
 
 public class CameraTestActivity extends Activity {
     public static String TAG = "CameraTestActivity";
+    final int CAMERA_PERMISSION_REQUEST_CODE = 91;
     CameraManager mCamaraManager;
     Handler childHandler, mainHandler;
     CameraDevice mCameraDevice;
@@ -80,6 +81,8 @@ public class CameraTestActivity extends Activity {
 
     @OnClick(R.id.btn_switch_camera)
     public void onSwitchCamaraClicked(){
+        if(mCameraDevice == null) return;
+        
         if(mCameraDevice.getId().equals("1")){
             mCameraId = "0";
         }else{
@@ -180,16 +183,38 @@ public class CameraTestActivity extends Activity {
 
     private void openCamera(String cameraId, CameraDevice.StateCallback stateCallback, Handler handler) {
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, "没有拍照权限", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        try {
-            mCamaraManager.openCamera(cameraId, stateCallback , handler);
-        } catch (CameraAccessException e) {
-            e.printStackTrace();
+            if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)){
+                //用户曾经拒绝过权限的请求，而且没有勾选不再询问，可以在这里添加为什么程序无法正常使用
+                Toast.makeText(this, "请勾选Camera权限", Toast.LENGTH_LONG).show();
+            } else {
+                ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA},CAMERA_PERMISSION_REQUEST_CODE);
+            }
+        }else {
+            try {
+                mCamaraManager.openCamera(cameraId, stateCallback, handler);
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
+            }
         }
     }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+       switch (requestCode){
+           case CAMERA_PERMISSION_REQUEST_CODE:{
+               // 如果请求被取消了，那么结果数组就是空的
+               if(grantResults.length > 0
+                       && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                   //获得了权限
+                   openCamera(mCameraId, stateCallback ,mainHandler);
+               }else{
+                   Toast.makeText(this, "没有拍照权限", Toast.LENGTH_SHORT).show();
+               }
+               return;
+           }
+       }
+
+    }
 
     private CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
         @Override
@@ -226,7 +251,7 @@ public class CameraTestActivity extends Activity {
                     @Override
                     public void onConfigured(CameraCaptureSession session) {
                         if (null == mCameraDevice) return;
-                        mCameraDevice.close();
+                        //mCameraDevice.close();
                         mCameraCaptureSession = session;
                         //自动对焦
                         previewRequesrBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
@@ -278,7 +303,8 @@ public class CameraTestActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
-        mCameraDevice.close();
+        if(mCameraDevice != null) {
+            mCameraDevice.close();
+        }
     }
 }
