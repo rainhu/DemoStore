@@ -32,6 +32,8 @@ import android.widget.Toast;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -53,6 +55,8 @@ public class CameraTestActivity extends Activity {
     ImageReader mImageReader;
     boolean isPreviewMode = false;
     String mCameraId;
+
+    private Semaphore mCameraOpenCloseLock = new Semaphore(1);
 
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
 
@@ -120,6 +124,19 @@ public class CameraTestActivity extends Activity {
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        openCamera(mCameraId, stateCallback ,mainHandler);
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        closeCamera();
+    }
+
     private void initView(){
         mSurfaceHolder = mSurfaceView.getHolder();
         mSurfaceHolder.addCallback(new SurfaceHolder.Callback2() {
@@ -151,6 +168,8 @@ public class CameraTestActivity extends Activity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
+
+
     public void initCamera(){
         mCamaraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         HandlerThread handlerThread = new HandlerThread("camera");
@@ -177,24 +196,58 @@ public class CameraTestActivity extends Activity {
             }
         }, mainHandler);
 
-        openCamera(mCameraId, stateCallback ,mainHandler);
 
+    }
+
+    private void requestCameraPermission(){
+        if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)){
+            //用户曾经拒绝过权限的请求，而且没有勾选不再询问，可以在这里添加为什么程序无法正常使用
+            Toast.makeText(this, "请勾选Camera权限", Toast.LENGTH_LONG).show();
+        } else {
+            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA},CAMERA_PERMISSION_REQUEST_CODE);
+        }
     }
 
     private void openCamera(String cameraId, CameraDevice.StateCallback stateCallback, Handler handler) {
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)){
-                //用户曾经拒绝过权限的请求，而且没有勾选不再询问，可以在这里添加为什么程序无法正常使用
-                Toast.makeText(this, "请勾选Camera权限", Toast.LENGTH_LONG).show();
-            } else {
-                ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA},CAMERA_PERMISSION_REQUEST_CODE);
-            }
-        }else {
-            try {
+            requestCameraPermission();
+            return;
+        }
+        try {
+                if(!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)){
+                    throw new RuntimeException("Time out waiting to lock camera openging.");
+                }
                 mCamaraManager.openCamera(cameraId, stateCallback, handler);
-            } catch (CameraAccessException e) {
+        } catch (CameraAccessException e) {
                 e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void closeCamera(){
+        try {
+            mCameraOpenCloseLock.acquire();
+            if(null != mCameraCaptureSession){
+                mCameraCaptureSession.close();
+                mCameraCaptureSession = null;
             }
+
+            if(null != mCameraDevice){
+                mCameraDevice.close();
+                mCameraDevice = null;
+            }
+
+            if(null != mImageReader){
+                mImageReader.close();
+                mImageReader = null;
+            }
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            mCameraOpenCloseLock.release();
         }
     }
 
@@ -219,12 +272,16 @@ public class CameraTestActivity extends Activity {
     private CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
         @Override
         public void onOpened(@NonNull CameraDevice camera) {
+            mCameraOpenCloseLock.release();
+
             mCameraDevice = camera;
             takePreview();
         }
 
         @Override
         public void onDisconnected(@NonNull CameraDevice camera) {
+            mCameraOpenCloseLock.release();
+
             if (null != mCameraDevice) {
                 mCameraDevice.close();
                 mCameraDevice = null;
@@ -232,6 +289,7 @@ public class CameraTestActivity extends Activity {
         }
         @Override
         public void onError(CameraDevice camera, int error) {
+            mCameraOpenCloseLock.release();
             Toast.makeText(CameraTestActivity.this, "开启摄像头失败", Toast.LENGTH_SHORT).show();
         }
 
@@ -244,17 +302,23 @@ public class CameraTestActivity extends Activity {
 
         isPreviewMode = true;
         try {
+
+            //设立一个CaptureRequest.Builder
             final CaptureRequest.Builder previewRequesrBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             previewRequesrBuilder.addTarget(mSurfaceHolder.getSurface());
+
             //创建CaptureSession，该对象负责处理预览请求和拍照请求
             mCameraDevice.createCaptureSession(Arrays.asList(mSurfaceHolder.getSurface(),mImageReader.getSurface()), new CameraCaptureSession.StateCallback() {
                     @Override
                     public void onConfigured(CameraCaptureSession session) {
-                        if (null == mCameraDevice) return;
+                        if (null == mCameraDevice){
+                            return;
+                        }
                         //mCameraDevice.close();
                         mCameraCaptureSession = session;
                         //自动对焦
                         previewRequesrBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+
 
                         CaptureRequest previewRequest = previewRequesrBuilder.build();
                         try {
@@ -273,7 +337,12 @@ public class CameraTestActivity extends Activity {
                 e.printStackTrace();
             }
         }
-
+    private void setAutoFlash(CaptureRequest.Builder requestBuilder) {
+        if (mFlashSupported) {
+            requestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
+                    CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+        }
+     }
         private void takePicture(){
             if(mCameraDevice == null ) return;
 
