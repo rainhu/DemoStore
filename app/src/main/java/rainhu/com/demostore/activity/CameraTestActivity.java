@@ -21,6 +21,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -120,6 +121,9 @@ public class CameraTestActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cameratest);
         ButterKnife.inject(this);
+        mCamaraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
+        mCameraId = "" + CameraCharacteristics.LENS_FACING_FRONT;
+
         initView();
 
     }
@@ -127,6 +131,7 @@ public class CameraTestActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        Log.i(TAG,"onResume");
         openCamera(mCameraId, stateCallback ,mainHandler);
 
     }
@@ -134,6 +139,7 @@ public class CameraTestActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        Log.i(TAG,"onPause");
         closeCamera();
     }
 
@@ -171,13 +177,11 @@ public class CameraTestActivity extends Activity {
 
 
     public void initCamera(){
-        mCamaraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         HandlerThread handlerThread = new HandlerThread("camera");
         handlerThread.start();
         childHandler = new Handler(handlerThread.getLooper());
         mainHandler = new Handler(getMainLooper());
 
-        mCameraId = "" + CameraCharacteristics.LENS_FACING_FRONT;
         mImageReader = ImageReader.newInstance(1090,1920, ImageFormat.JPEG,1);
         mImageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
             @Override
@@ -214,12 +218,12 @@ public class CameraTestActivity extends Activity {
             return;
         }
         try {
-                if(!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)){
-                    throw new RuntimeException("Time out waiting to lock camera openging.");
-                }
-                mCamaraManager.openCamera(cameraId, stateCallback, handler);
+            if(!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)){
+                throw new RuntimeException("Time out waiting to lock camera openging.");
+            }
+            mCamaraManager.openCamera(cameraId, stateCallback, handler);
         } catch (CameraAccessException e) {
-                e.printStackTrace();
+            e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -273,7 +277,6 @@ public class CameraTestActivity extends Activity {
         @Override
         public void onOpened(@NonNull CameraDevice camera) {
             mCameraOpenCloseLock.release();
-
             mCameraDevice = camera;
             takePreview();
         }
@@ -290,6 +293,7 @@ public class CameraTestActivity extends Activity {
         @Override
         public void onError(CameraDevice camera, int error) {
             mCameraOpenCloseLock.release();
+            mCameraDevice = null;
             Toast.makeText(CameraTestActivity.this, "开启摄像头失败", Toast.LENGTH_SHORT).show();
         }
 
@@ -338,10 +342,10 @@ public class CameraTestActivity extends Activity {
             }
         }
     private void setAutoFlash(CaptureRequest.Builder requestBuilder) {
-        if (mFlashSupported) {
-            requestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
-                    CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
-        }
+//        if (mFlashSupported) {
+//            requestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
+//                    CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+//        }
      }
         private void takePicture(){
             if(mCameraDevice == null ) return;
