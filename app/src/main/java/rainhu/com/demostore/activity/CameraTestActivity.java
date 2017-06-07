@@ -49,10 +49,11 @@ public class CameraTestActivity extends Activity {
     public static String TAG = "CameraTestActivity";
     final int CAMERA_PERMISSION_REQUEST_CODE = 91;
     CameraManager mCamaraManager;
-    Handler childHandler, mainHandler;
+    Handler mBackgroundHandler;
+    HandlerThread mBackgroundThread;
     CameraDevice mCameraDevice;
     CameraCaptureSession mCameraCaptureSession;
-    SurfaceHolder mSurfaceHolder;
+    SurfaceHolder mSurfaceHolder = null;
     ImageReader mImageReader;
     boolean isPreviewMode = false;
     String mCameraId;
@@ -94,7 +95,7 @@ public class CameraTestActivity extends Activity {
             mCameraId = "1";
         }
         mCameraDevice.close();
-        openCamera(mCameraId, stateCallback, mainHandler);
+        openCamera();
     }
 
     @OnClick(R.id.btn_capture)
@@ -124,7 +125,6 @@ public class CameraTestActivity extends Activity {
         mCamaraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         mCameraId = "" + CameraCharacteristics.LENS_FACING_FRONT;
 
-        initView();
 
     }
 
@@ -132,8 +132,26 @@ public class CameraTestActivity extends Activity {
     protected void onResume() {
         super.onResume();
         Log.i(TAG,"onResume");
-        openCamera(mCameraId, stateCallback ,mainHandler);
+        startBackgroundThread();
+        if(mSurfaceHolder == null){
+            Log.i(TAG, "mSurfaceHolder == null");
+            //surface还没有被创建
+            mSurfaceHolder = mSurfaceView.getHolder();
+            mSurfaceHolder.addCallback(mSurfaceHolderCallback);
+        } else {
+            //surface已经被创建
+            Log.i(TAG, "mSurfaceHolder != null");
+            openCamera();
 
+        }
+
+
+    }
+
+    private void startBackgroundThread() {
+        mBackgroundThread = new HandlerThread("cameraBackgroud");
+        mBackgroundThread.start();
+        mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
     }
 
     @Override
@@ -141,31 +159,52 @@ public class CameraTestActivity extends Activity {
         super.onPause();
         Log.i(TAG,"onPause");
         closeCamera();
+        stopBackgroundThread();
     }
 
+    private void stopBackgroundThread() {
+        mBackgroundThread.quitSafely();
+        try {
+            mBackgroundThread.join();
+            mBackgroundThread = null;
+            mBackgroundHandler = null;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private SurfaceHolder.Callback2 mSurfaceHolderCallback = new SurfaceHolder.Callback2(){
+
+        @Override
+        public void surfaceCreated(SurfaceHolder holder) {
+            openCamera();
+
+        }
+
+        @Override
+        public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+        }
+
+        @Override
+        public void surfaceDestroyed(SurfaceHolder holder) {
+            if(null != mCameraDevice){
+                mCameraDevice.close();
+                CameraTestActivity.this.mCameraDevice = null;
+            }
+        }
+
+        @Override
+        public void surfaceRedrawNeeded(SurfaceHolder holder) {
+
+        }
+    };
+
     private void initView(){
-        mSurfaceHolder = mSurfaceView.getHolder();
-        mSurfaceHolder.addCallback(new SurfaceHolder.Callback2() {
-            @Override
-            public void surfaceCreated(SurfaceHolder holder) {
-                initCamera();
-            }
-            @Override
-            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+        Log.i(TAG, "initView");
 
-            }
-            @Override
-            public void surfaceDestroyed(SurfaceHolder holder) {
-                if(null != mCameraDevice){
-                    mCameraDevice.close();
-                    CameraTestActivity.this.mCameraDevice = null;
-                }
-            }
-            @Override
-            public void surfaceRedrawNeeded(SurfaceHolder holder) {
 
-            }
-        });
     }
 
 
@@ -177,12 +216,8 @@ public class CameraTestActivity extends Activity {
 
 
     public void initCamera(){
-        HandlerThread handlerThread = new HandlerThread("camera");
-        handlerThread.start();
-        childHandler = new Handler(handlerThread.getLooper());
-        mainHandler = new Handler(getMainLooper());
-
-        mImageReader = ImageReader.newInstance(1090,1920, ImageFormat.JPEG,1);
+        Log.i(TAG,"initCamera");
+        mImageReader = ImageReader.newInstance(1090,1920, ImageFormat.JPEG, 1);
         mImageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
             @Override
             public void onImageAvailable(ImageReader reader) {
@@ -198,12 +233,11 @@ public class CameraTestActivity extends Activity {
                     mImageView.setImageBitmap(bitmap);
                 }
             }
-        }, mainHandler);
-
-
+        }, mBackgroundHandler);
     }
 
     private void requestCameraPermission(){
+        Log.i(TAG, "requestCameraPermission");
         if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)){
             //用户曾经拒绝过权限的请求，而且没有勾选不再询问，可以在这里添加为什么程序无法正常使用
             Toast.makeText(this, "请勾选Camera权限", Toast.LENGTH_LONG).show();
@@ -212,16 +246,18 @@ public class CameraTestActivity extends Activity {
         }
     }
 
-    private void openCamera(String cameraId, CameraDevice.StateCallback stateCallback, Handler handler) {
+    private void openCamera() {
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             requestCameraPermission();
             return;
         }
+        initCamera();
+
         try {
             if(!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)){
                 throw new RuntimeException("Time out waiting to lock camera openging.");
             }
-            mCamaraManager.openCamera(cameraId, stateCallback, handler);
+            mCamaraManager.openCamera(mCameraId, stateCallback, mBackgroundHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -247,7 +283,6 @@ public class CameraTestActivity extends Activity {
                 mImageReader.close();
                 mImageReader = null;
             }
-
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {
@@ -258,12 +293,14 @@ public class CameraTestActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
        switch (requestCode){
-           case CAMERA_PERMISSION_REQUEST_CODE:{
+           case CAMERA_PERMISSION_REQUEST_CODE: {
                // 如果请求被取消了，那么结果数组就是空的
                if(grantResults.length > 0
                        && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                    //获得了权限
-                   openCamera(mCameraId, stateCallback ,mainHandler);
+                   Log.i(TAG, "onRequestPermissionsResult");
+
+                   //openCamera(mCameraId, stateCallback ,mainHandler); will be onResume
                }else{
                    Toast.makeText(this, "没有拍照权限", Toast.LENGTH_SHORT).show();
                }
@@ -312,7 +349,7 @@ public class CameraTestActivity extends Activity {
             previewRequesrBuilder.addTarget(mSurfaceHolder.getSurface());
 
             //创建CaptureSession，该对象负责处理预览请求和拍照请求
-            mCameraDevice.createCaptureSession(Arrays.asList(mSurfaceHolder.getSurface(),mImageReader.getSurface()), new CameraCaptureSession.StateCallback() {
+            mCameraDevice.createCaptureSession(Arrays.asList(mSurfaceHolder.getSurface(), mImageReader.getSurface()), new CameraCaptureSession.StateCallback() {
                     @Override
                     public void onConfigured(CameraCaptureSession session) {
                         if (null == mCameraDevice){
@@ -326,7 +363,7 @@ public class CameraTestActivity extends Activity {
 
                         CaptureRequest previewRequest = previewRequesrBuilder.build();
                         try {
-                            mCameraCaptureSession.setRepeatingRequest(previewRequest, null, childHandler);
+                            mCameraCaptureSession.setRepeatingRequest(previewRequest, null, mBackgroundHandler);
                         } catch (CameraAccessException e) {
                             e.printStackTrace();
                         }
@@ -336,7 +373,7 @@ public class CameraTestActivity extends Activity {
                     public void onConfigureFailed(CameraCaptureSession session) {
                         Toast.makeText(CameraTestActivity.this, "配置失败", Toast.LENGTH_SHORT).show();
                     }
-                }, childHandler);
+                }, mBackgroundHandler);
             } catch (CameraAccessException e) {
                 e.printStackTrace();
             }
@@ -367,7 +404,7 @@ public class CameraTestActivity extends Activity {
                 captureRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
                 //拍照
                 CaptureRequest mCaptureRequest = captureRequestBuilder.build();
-                mCameraCaptureSession.capture(mCaptureRequest, null, childHandler);
+                mCameraCaptureSession.capture(mCaptureRequest, null, mBackgroundHandler);
             } catch (CameraAccessException e) {
                 e.printStackTrace();
             }
