@@ -49,7 +49,7 @@ public class CameraTestActivity extends Activity {
     public static String TAG = "CameraTestActivity";
     final int CAMERA_PERMISSION_REQUEST_CODE = 91;
     CameraManager mCamaraManager;
-    Handler mBackgroundHandler;
+    Handler mBackgroundHandler, mMainHandler;
     HandlerThread mBackgroundThread;
     CameraDevice mCameraDevice;
     CameraCaptureSession mCameraCaptureSession;
@@ -61,6 +61,46 @@ public class CameraTestActivity extends Activity {
     private Semaphore mCameraOpenCloseLock = new Semaphore(1);
 
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+
+
+    private SurfaceHolder.Callback2 mSurfaceHolderCallback = new SurfaceHolder.Callback2(){
+        @Override
+        public void surfaceCreated(SurfaceHolder holder) {
+            openCamera();
+        }
+        @Override
+        public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+
+        }
+        @Override
+        public void surfaceDestroyed(SurfaceHolder holder) {
+            if(null != mCameraDevice){
+                mCameraDevice.close();
+                CameraTestActivity.this.mCameraDevice = null;
+            }
+        }
+        @Override
+        public void surfaceRedrawNeeded(SurfaceHolder holder) {
+        }
+    };
+
+
+    private ImageReader.OnImageAvailableListener mImageAvailableListener = new ImageReader.OnImageAvailableListener() {
+        @Override
+        public void onImageAvailable(ImageReader reader) {
+            mSurfaceView.setVisibility(View.GONE);
+            mImageView.setVisibility(View.VISIBLE);
+
+            Image image = reader.acquireNextImage();
+            ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+            byte[] bytes = new byte[buffer.remaining()];
+            buffer.get(bytes); //将缓冲区的数据存到字节数组中
+            final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            if(null != bitmap){
+                mImageView.setImageBitmap(bitmap);
+            }
+        }
+    };
 
     ///为了使照片竖直显示
     static {
@@ -152,6 +192,7 @@ public class CameraTestActivity extends Activity {
         mBackgroundThread = new HandlerThread("cameraBackgroud");
         mBackgroundThread.start();
         mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
+        mMainHandler = new Handler(getMainLooper());
     }
 
     @Override
@@ -168,72 +209,21 @@ public class CameraTestActivity extends Activity {
             mBackgroundThread.join();
             mBackgroundThread = null;
             mBackgroundHandler = null;
+            mMainHandler = null;
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
-
-
-    private SurfaceHolder.Callback2 mSurfaceHolderCallback = new SurfaceHolder.Callback2(){
-
-        @Override
-        public void surfaceCreated(SurfaceHolder holder) {
-            openCamera();
-
-        }
-
-        @Override
-        public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
-        }
-
-        @Override
-        public void surfaceDestroyed(SurfaceHolder holder) {
-            if(null != mCameraDevice){
-                mCameraDevice.close();
-                CameraTestActivity.this.mCameraDevice = null;
-            }
-        }
-
-        @Override
-        public void surfaceRedrawNeeded(SurfaceHolder holder) {
-
-        }
-    };
-
-    private void initView(){
-        Log.i(TAG, "initView");
-
-
-    }
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-
-
-    public void initCamera(){
+    public void initCameraOutput(){
         Log.i(TAG,"initCamera");
         mImageReader = ImageReader.newInstance(1090,1920, ImageFormat.JPEG, 1);
-        mImageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
-            @Override
-            public void onImageAvailable(ImageReader reader) {
-                mSurfaceView.setVisibility(View.GONE);
-                mImageView.setVisibility(View.VISIBLE);
-
-                Image image = reader.acquireNextImage();
-                ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-                byte[] bytes = new byte[buffer.remaining()];
-                buffer.get(bytes); //将缓冲区的数据存到字节数组中
-                final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                if(null != bitmap){
-                    mImageView.setImageBitmap(bitmap);
-                }
-            }
-        }, mBackgroundHandler);
+        mImageReader.setOnImageAvailableListener(mImageAvailableListener, mMainHandler);
     }
 
     private void requestCameraPermission(){
@@ -251,7 +241,7 @@ public class CameraTestActivity extends Activity {
             requestCameraPermission();
             return;
         }
-        initCamera();
+        initCameraOutput();
 
         try {
             if(!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)){
@@ -343,7 +333,6 @@ public class CameraTestActivity extends Activity {
 
         isPreviewMode = true;
         try {
-
             //设立一个CaptureRequest.Builder
             final CaptureRequest.Builder previewRequesrBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             previewRequesrBuilder.addTarget(mSurfaceHolder.getSurface());
@@ -359,8 +348,6 @@ public class CameraTestActivity extends Activity {
                         mCameraCaptureSession = session;
                         //自动对焦
                         previewRequesrBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-
-
                         CaptureRequest previewRequest = previewRequesrBuilder.build();
                         try {
                             mCameraCaptureSession.setRepeatingRequest(previewRequest, null, mBackgroundHandler);
