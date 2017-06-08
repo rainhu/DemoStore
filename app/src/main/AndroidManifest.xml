@@ -21,6 +21,7 @@
 
     <!--permission for camera-->
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
     <application
         android:allowBackup="true"
@@ -96,7 +97,8 @@
 
 
 
-        <activity android:name=".activity.CameraTestActivity"/>
+        <activity android:name=".activity.CameraTestActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|keyboardHidden"/>
 
         <activity android:name=".activity.OtaTestActivity"/>
 

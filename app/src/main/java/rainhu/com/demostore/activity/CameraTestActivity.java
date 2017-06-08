@@ -17,6 +17,7 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
+import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -33,10 +34,14 @@ import android.widget.ImageView;
 import android.widget.Toast;
 import android.util.Size;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -61,11 +66,20 @@ public class CameraTestActivity extends Activity {
     ImageReader mImageReader;
     boolean isPreviewMode = false;
     String mCameraId;
+    MediaRecorder mMediaRecorder;
+    private String mNextVideoAbsolutePath;
+    private Size mVideoSize;
+    private boolean isTakingVideo = false;
 
     private Semaphore mCameraOpenCloseLock = new Semaphore(1);
 
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
     CaptureRequest.Builder previewRequesrBuilder;
+
+    private static final String[] VIDEO_PERMISSIONS = {
+            Manifest.permission.CAMERA,
+            Manifest.permission.RECORD_AUDIO,
+    };
 
     private SurfaceHolder.Callback2 mSurfaceHolderCallback = new SurfaceHolder.Callback2(){
         @Override
@@ -133,6 +147,9 @@ public class CameraTestActivity extends Activity {
     @InjectView(R.id.btn_preview)
     Button preview;
 
+    @InjectView(R.id.btn_video)
+    Button videoBtn;
+
     @OnClick(R.id.btn_switch_camera)
     public void onSwitchCamaraBtnClicked(){
         Log.i(TAG , "onSwitchCamaraBtnClicked");
@@ -167,10 +184,129 @@ public class CameraTestActivity extends Activity {
     public void onPreviewBtnClicked(){
         Log.i(TAG, "onPreviewBtnClicked");
 
-        if(isPreviewMode) return;
+        if(isPreviewMode) {
+            return;
+        }
         mImageView.setVisibility(View.GONE);
         mSurfaceView.setVisibility(View.VISIBLE);
         takePreview();
+    }
+
+    @OnClick(R.id.btn_video)
+    public void onVideoBtnClicked(){
+        Log.i(TAG,"onVideoBtnClicked");
+        mImageView.setVisibility(View.GONE);
+        mSurfaceView.setVisibility(View.VISIBLE);
+
+        if(isTakingVideo){
+            stopTakeVideo();
+        }else{
+            startTakeVideo();
+        }
+    }
+
+    private void stopTakeVideo() {
+
+        // UI
+        isTakingVideo = false;
+
+        // Stop recording
+        videoBtn.setText("录像");
+
+        mMediaRecorder.setOnErrorListener(null);
+        mMediaRecorder.setOnInfoListener(null);
+        mMediaRecorder.setPreviewDisplay(null);
+        mMediaRecorder.stop();
+        mMediaRecorder.reset();
+
+        Toast.makeText(this, "Video saved: " + mNextVideoAbsolutePath,
+                    Toast.LENGTH_SHORT).show();
+        Log.d(TAG, "Video saved: " + mNextVideoAbsolutePath);
+
+        mNextVideoAbsolutePath = null;
+        takePreview();
+    }
+
+    private void startTakeVideo() {
+
+        try {
+            setUpMediaRecorder();
+
+            previewRequesrBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+            previewRequesrBuilder.addTarget(mSurfaceHolder.getSurface());
+
+
+            List<Surface> surfaces = new ArrayList<>();
+            surfaces.add(mSurfaceHolder.getSurface());
+
+            // Set up Surface for the MediaRecorder
+            Surface recorderSurface = mMediaRecorder.getSurface();
+            surfaces.add(recorderSurface);
+            previewRequesrBuilder.addTarget(recorderSurface);
+
+            mCameraDevice.createCaptureSession(surfaces, new CameraCaptureSession.StateCallback() {
+                @Override
+                public void onConfigured(@NonNull CameraCaptureSession session) {
+                    mCameraCaptureSession = session;
+                    previewRequesrBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                    CaptureRequest previewRequest = previewRequesrBuilder.build();
+                    try {
+
+                        mCameraCaptureSession.setRepeatingRequest(previewRequest, null, mBackgroundHandler);
+                    } catch (CameraAccessException e) {
+                        e.printStackTrace();
+                    }
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            isTakingVideo = true;
+                            videoBtn.setText("停止");
+                            mMediaRecorder.start();
+                        }
+                    });
+
+                }
+
+                @Override
+                public void onConfigureFailed(@NonNull CameraCaptureSession session) {
+                    Toast.makeText(CameraTestActivity.this, "配置失败", Toast.LENGTH_SHORT).show();
+                }
+            }, mBackgroundHandler);
+        } catch (IOException e) {
+
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+    private void setUpMediaRecorder() throws IOException {
+
+        mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+        mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+        mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+        if (mNextVideoAbsolutePath == null || mNextVideoAbsolutePath.isEmpty()) {
+            mNextVideoAbsolutePath = getVideoFilePath(this);
+        }
+        mMediaRecorder.setOutputFile(mNextVideoAbsolutePath);
+        mMediaRecorder.setVideoEncodingBitRate(10000000);
+        mMediaRecorder.setVideoFrameRate(30);
+        mMediaRecorder.setVideoSize(960, 720);
+        mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+        mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+        int rotation = getWindowManager().getDefaultDisplay().getRotation();
+        mMediaRecorder.setOrientationHint(ORIENTATIONS.get(rotation));
+        mMediaRecorder.prepare();
+    }
+
+
+
+    private String getVideoFilePath(Context context) {
+        final File dir = context.getExternalFilesDir(null);
+        return (dir == null ? "" : (dir.getAbsolutePath() + "/"))
+                + System.currentTimeMillis() + ".mp4";
     }
 
     @Override
@@ -239,10 +375,14 @@ public class CameraTestActivity extends Activity {
         try {
             CameraCharacteristics characteristics = mCamaraManager.getCameraCharacteristics(mCameraId);
             StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+            if(null == map){
+                throw new RuntimeException("Can not get available preview/video size");
+            }
+
+            mVideoSize = chooseVideoSize(map.getOutputSizes(CameraTestActivity.class));
             Size largest = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)), new CompareSizesByArea());
             Log.i(TAG, "MAX size : ["+largest.getWidth()+", "+largest.getHeight()+"]");
             //mImageReader = ImageReader.newInstance(largest.getWidth(),largest.getHeight(), ImageFormat.JPEG, 2);
-
             mImageReader = ImageReader.newInstance(1080,1920, ImageFormat.JPEG, 1);
             mImageReader.setOnImageAvailableListener(mImageAvailableListener, mMainHandler);
         } catch (CameraAccessException e) {
@@ -250,29 +390,54 @@ public class CameraTestActivity extends Activity {
         }
     }
 
+    private Size chooseVideoSize(Size[] outputSizes) {
+        for(Size size : outputSizes){
+            if(size.getWidth() == size.getHeight() * 3 / 4 && size.getWidth() < 1080){
+                Log.i(TAG,"VideoSize : ["+size.getWidth()+","+size.getHeight()+"]");
+                return size;
+            }
+        }
+        Log.e(TAG, "Couldn't find any suitable video size");
+        return outputSizes[outputSizes.length - 1];
+    }
 
-    private void requestCameraPermission(){
+    private void requestCameraPermission(String [] permissions){
         Log.i(TAG, "requestCameraPermission");
-        if(ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.CAMERA)){
+        if(shouldShowRequestPermissionRationale(permissions)){
             //用户曾经拒绝过权限的请求，而且没有勾选不再询问，可以在这里添加为什么程序无法正常使用
             Toast.makeText(this, "请勾选Camera权限", Toast.LENGTH_LONG).show();
         } else {
-            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.CAMERA},CAMERA_PERMISSION_REQUEST_CODE);
+            ActivityCompat.requestPermissions(this, permissions, CAMERA_PERMISSION_REQUEST_CODE);
         }
     }
 
+    private boolean shouldShowRequestPermissionRationale(String[] permissions){
+        for(String permission : permissions) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, permission)) {
+                //用户曾经拒绝过权限的请求，而且没有勾选不再询问，可以在这里添加为什么程序无法正常使用
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     *
+     *  尝试打开一个Camera, 打开的状态通过CameraDevice.StateCallback监听
+     *
+     * */
     private void openCamera() {
         Log.i(TAG, "openCamera");
-        if(ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            requestCameraPermission();
+        if(!hasPermissionGranted(VIDEO_PERMISSIONS)) {
+            requestCameraPermission(VIDEO_PERMISSIONS);
             return;
         }
         initCameraOutput();
-
         try {
             if(!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)){
                 throw new RuntimeException("Time out waiting to lock camera openging.");
             }
+            mMediaRecorder = new MediaRecorder();
             mCamaraManager.openCamera(mCameraId, deviceStateCallback, mMainHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -280,6 +445,15 @@ public class CameraTestActivity extends Activity {
             e.printStackTrace();
         }
 
+    }
+
+    private boolean hasPermissionGranted(String[] permissions){
+        for(String permission : permissions){
+            if(ActivityCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED){
+                return false;
+            }
+        }
+        return true;
     }
 
     private void closeCamera(){
@@ -299,6 +473,11 @@ public class CameraTestActivity extends Activity {
             if(null != mImageReader){
                 mImageReader.close();
                 mImageReader = null;
+            }
+
+            if(null != mMediaRecorder) {
+                mMediaRecorder.release();
+                mMediaRecorder = null;
             }
         } catch (InterruptedException e) {
             e.printStackTrace();
