@@ -14,6 +14,7 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
 import android.os.Bundle;
@@ -30,9 +31,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
+import android.util.Size;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -61,7 +65,7 @@ public class CameraTestActivity extends Activity {
     private Semaphore mCameraOpenCloseLock = new Semaphore(1);
 
     private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
-
+    CaptureRequest.Builder previewRequesrBuilder;
 
     private SurfaceHolder.Callback2 mSurfaceHolderCallback = new SurfaceHolder.Callback2(){
         @Override
@@ -88,6 +92,8 @@ public class CameraTestActivity extends Activity {
     private ImageReader.OnImageAvailableListener mImageAvailableListener = new ImageReader.OnImageAvailableListener() {
         @Override
         public void onImageAvailable(ImageReader reader) {
+             //执行mCameraCaptureSession.capture，数据会输出到mImageView
+            Log.i(TAG, "onImageAvailable");
             mSurfaceView.setVisibility(View.GONE);
             mImageView.setVisibility(View.VISIBLE);
 
@@ -98,6 +104,8 @@ public class CameraTestActivity extends Activity {
             final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
             if(null != bitmap){
                 mImageView.setImageBitmap(bitmap);
+            } else {
+                Toast.makeText(CameraTestActivity.this, "获取照片失败！", Toast.LENGTH_SHORT).show();
             }
         }
     };
@@ -117,18 +125,23 @@ public class CameraTestActivity extends Activity {
     Button capture;
 
     @InjectView(R.id.sv_camera)
-    SurfaceView mSurfaceView;
+    SurfaceView mSurfaceView; //用来显示camera preview
 
     @InjectView(R.id.iv_show_camera)
-    ImageView mImageView;
+    ImageView mImageView; //用来显示拍摄的照片
 
     @InjectView(R.id.btn_preview)
     Button preview;
 
     @OnClick(R.id.btn_switch_camera)
-    public void onSwitchCamaraClicked(){
-        if(mCameraDevice == null) return;
-        
+    public void onSwitchCamaraBtnClicked(){
+        Log.i(TAG , "onSwitchCamaraBtnClicked");
+        if(!isPreviewMode){
+            return;
+        }
+        if(mCameraDevice == null) {
+            return;
+        }
         if(mCameraDevice.getId().equals("1")){
             mCameraId = "0";
         }else{
@@ -139,19 +152,22 @@ public class CameraTestActivity extends Activity {
     }
 
     @OnClick(R.id.btn_capture)
-    public void onCaptureClicked(){
+    public void onCaptureBtnClicked(){
+        Log.i(TAG, "onCaptureBtnClicked");
         takePicture();
     }
 
     @OnClick(R.id.sv_camera)
     public void onSurfaceCameraClicked(){
+        Log.i(TAG, "onSurfaceCameraClicked");
         takePicture();
     }
 
     @OnClick(R.id.btn_preview)
-    public void onPreviewClicked(){
-        if(isPreviewMode) return;
+    public void onPreviewBtnClicked(){
+        Log.i(TAG, "onPreviewBtnClicked");
 
+        if(isPreviewMode) return;
         mImageView.setVisibility(View.GONE);
         mSurfaceView.setVisibility(View.VISIBLE);
         takePreview();
@@ -184,8 +200,6 @@ public class CameraTestActivity extends Activity {
             openCamera();
 
         }
-
-
     }
 
     private void startBackgroundThread() {
@@ -221,10 +235,21 @@ public class CameraTestActivity extends Activity {
     }
 
     public void initCameraOutput(){
-        Log.i(TAG,"initCamera");
-        mImageReader = ImageReader.newInstance(1090,1920, ImageFormat.JPEG, 1);
-        mImageReader.setOnImageAvailableListener(mImageAvailableListener, mMainHandler);
+        Log.i(TAG,"initCameraOutput");
+        try {
+            CameraCharacteristics characteristics = mCamaraManager.getCameraCharacteristics(mCameraId);
+            StreamConfigurationMap map = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+            Size largest = Collections.max(Arrays.asList(map.getOutputSizes(ImageFormat.JPEG)), new CompareSizesByArea());
+            Log.i(TAG, "MAX size : ["+largest.getWidth()+", "+largest.getHeight()+"]");
+            //mImageReader = ImageReader.newInstance(largest.getWidth(),largest.getHeight(), ImageFormat.JPEG, 2);
+
+            mImageReader = ImageReader.newInstance(1080,1920, ImageFormat.JPEG, 1);
+            mImageReader.setOnImageAvailableListener(mImageAvailableListener, mMainHandler);
+        } catch (CameraAccessException e) {
+            e.printStackTrace();
+        }
     }
+
 
     private void requestCameraPermission(){
         Log.i(TAG, "requestCameraPermission");
@@ -237,6 +262,7 @@ public class CameraTestActivity extends Activity {
     }
 
     private void openCamera() {
+        Log.i(TAG, "openCamera");
         if(ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             requestCameraPermission();
             return;
@@ -247,7 +273,7 @@ public class CameraTestActivity extends Activity {
             if(!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)){
                 throw new RuntimeException("Time out waiting to lock camera openging.");
             }
-            mCamaraManager.openCamera(mCameraId, stateCallback, mBackgroundHandler);
+            mCamaraManager.openCamera(mCameraId, deviceStateCallback, mMainHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -257,6 +283,7 @@ public class CameraTestActivity extends Activity {
     }
 
     private void closeCamera(){
+        Log.i(TAG,"closeCamera");
         try {
             mCameraOpenCloseLock.acquire();
             if(null != mCameraCaptureSession){
@@ -288,9 +315,8 @@ public class CameraTestActivity extends Activity {
                if(grantResults.length > 0
                        && grantResults[0] == PackageManager.PERMISSION_GRANTED){
                    //获得了权限
-                   Log.i(TAG, "onRequestPermissionsResult");
 
-                   //openCamera(mCameraId, stateCallback ,mainHandler); will be onResume
+                   //openCamera(mCameraId, stateCallback ,mainHandler); will be do in onResume
                }else{
                    Toast.makeText(this, "没有拍照权限", Toast.LENGTH_SHORT).show();
                }
@@ -300,7 +326,8 @@ public class CameraTestActivity extends Activity {
 
     }
 
-    private CameraDevice.StateCallback stateCallback = new CameraDevice.StateCallback() {
+    //用来获取CameraDevice打开的状态的回调函数
+    private CameraDevice.StateCallback deviceStateCallback = new CameraDevice.StateCallback() {
         @Override
         public void onOpened(@NonNull CameraDevice camera) {
             mCameraOpenCloseLock.release();
@@ -326,54 +353,55 @@ public class CameraTestActivity extends Activity {
 
     };
 
-    private void takePreview() {
-        if (null == mCameraDevice) {
-            return;
-        }
 
-        isPreviewMode = true;
-        try {
-            //设立一个CaptureRequest.Builder
-            final CaptureRequest.Builder previewRequesrBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            previewRequesrBuilder.addTarget(mSurfaceHolder.getSurface());
+    private CameraCaptureSession.StateCallback captureSessionStateCallback = new CameraCaptureSession.StateCallback() {
+        @Override
+        public void onConfigured(@NonNull CameraCaptureSession session) {
+            if (null == mCameraDevice){
+                return;
+            }
+            Log.i(TAG, session == null ? "session is null" : "session is not null");
 
-            //创建CaptureSession，该对象负责处理预览请求和拍照请求
-            mCameraDevice.createCaptureSession(Arrays.asList(mSurfaceHolder.getSurface(), mImageReader.getSurface()), new CameraCaptureSession.StateCallback() {
-                    @Override
-                    public void onConfigured(CameraCaptureSession session) {
-                        if (null == mCameraDevice){
-                            return;
-                        }
-                        //mCameraDevice.close();
-                        mCameraCaptureSession = session;
-                        //自动对焦
-                        previewRequesrBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-                        CaptureRequest previewRequest = previewRequesrBuilder.build();
-                        try {
-                            mCameraCaptureSession.setRepeatingRequest(previewRequest, null, mBackgroundHandler);
-                        } catch (CameraAccessException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    @Override
-                    public void onConfigureFailed(CameraCaptureSession session) {
-                        Toast.makeText(CameraTestActivity.this, "配置失败", Toast.LENGTH_SHORT).show();
-                    }
-                }, mBackgroundHandler);
+            //mCameraDevice.close();
+            mCameraCaptureSession = session;
+            //自动对焦
+            previewRequesrBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+            CaptureRequest previewRequest = previewRequesrBuilder.build();
+            try {
+                mCameraCaptureSession.setRepeatingRequest(previewRequest, null, mBackgroundHandler);
             } catch (CameraAccessException e) {
                 e.printStackTrace();
             }
         }
-    private void setAutoFlash(CaptureRequest.Builder requestBuilder) {
-//        if (mFlashSupported) {
-//            requestBuilder.set(CaptureRequest.CONTROL_AE_MODE,
-//                    CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
-//        }
-     }
-        private void takePicture(){
-            if(mCameraDevice == null ) return;
 
+        @Override
+        public void onConfigureFailed(@NonNull CameraCaptureSession session) {
+            Toast.makeText(CameraTestActivity.this, "配置失败", Toast.LENGTH_SHORT).show();
+        }
+    };
+
+    private void takePreview() {
+        Log.i(TAG, "takePreview");
+        if (null == mCameraDevice) {
+            return;
+        }
+        isPreviewMode = true;
+        try {
+            //设立一个CaptureRequest.Builder
+            previewRequesrBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+            previewRequesrBuilder.addTarget(mSurfaceHolder.getSurface());
+
+            //创建CaptureSession，该对象负责处理预览请求和拍照请求
+            mCameraDevice.createCaptureSession(Arrays.asList(mSurfaceHolder.getSurface(), mImageReader.getSurface()), captureSessionStateCallback, mBackgroundHandler);
+            } catch (CameraAccessException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void takePicture(){
+            if(mCameraDevice == null ) {
+                return;
+            }
             isPreviewMode = false;
             // 创建拍照需要的CaptureRequest.Builder
             final CaptureRequest.Builder captureRequestBuilder;
@@ -391,7 +419,7 @@ public class CameraTestActivity extends Activity {
                 captureRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION, ORIENTATIONS.get(rotation));
                 //拍照
                 CaptureRequest mCaptureRequest = captureRequestBuilder.build();
-                mCameraCaptureSession.capture(mCaptureRequest, null, mBackgroundHandler);
+                mCameraCaptureSession.capture(mCaptureRequest, null, mMainHandler);
             } catch (CameraAccessException e) {
                 e.printStackTrace();
             }
@@ -402,6 +430,14 @@ public class CameraTestActivity extends Activity {
         super.onDestroy();
         if(mCameraDevice != null) {
             mCameraDevice.close();
+        }
+    }
+
+    static class CompareSizesByArea implements Comparator<Size>{
+
+        @Override
+        public int compare(Size o1, Size o2) {
+            return Long.signum((long)o1.getWidth()*o1.getHeight() - (long)o2.getWidth()*o2.getHeight()) ;
         }
     }
 }
