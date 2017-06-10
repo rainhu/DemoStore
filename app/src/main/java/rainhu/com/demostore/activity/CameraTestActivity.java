@@ -315,9 +315,9 @@ public class CameraTestActivity extends Activity {
         setContentView(R.layout.activity_cameratest);
         ButterKnife.inject(this);
         mCamaraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-        mCameraId = "" + CameraCharacteristics.LENS_FACING_FRONT;
+        //mCameraId = "" + CameraCharacteristics.LENS_FACING_FRONT;
 
-
+        mCameraId = "0";
     }
 
     @Override
@@ -391,6 +391,9 @@ public class CameraTestActivity extends Activity {
     }
 
     private Size chooseVideoSize(Size[] outputSizes) {
+        if(outputSizes == null){
+            return null;
+        }
         for(Size size : outputSizes){
             if(size.getWidth() == size.getHeight() * 3 / 4 && size.getWidth() < 1080){
                 Log.i(TAG,"VideoSize : ["+size.getWidth()+","+size.getHeight()+"]");
