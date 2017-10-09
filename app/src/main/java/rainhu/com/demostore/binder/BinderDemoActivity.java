@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -107,7 +108,21 @@ public class BinderDemoActivity extends Activity {
     @OnClick(R.id.binderDemoBtn_bindAIDLRemoteService)
     public void onBindAIDLRemoteService(){
         Intent service = new Intent(BinderDemoActivity.this, AIDLRemoteService.class);
-        bindService(service,AIDLRemoteServiceCon, Context.BIND_AUTO_CREATE);
+        bindService(service,new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                Log.i("hzy","AIDL remote service connected");
+                //这边的Serbice是BinderProxy
+                //asInterface返回IAIDLRemoteService.Stub.Proxy
+                mAIDLRemoteService = IAIDLRemoteService.Stub.asInterface(service);
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                Log.i("hzy","AIDL remote service disconnected");
+                mAIDLRemoteService = null;
+            }
+        }, Context.BIND_AUTO_CREATE);
     }
 
     @InjectView(R.id.binderDemoBtn_unbindAIDLRemoteService)
@@ -142,6 +157,7 @@ public class BinderDemoActivity extends Activity {
 
         ButterKnife.inject(this);
 
+        PackageManager pm = getPackageManager();
         localserviceCon = new ServiceConnection() {
             @Override
             public void onServiceConnected(ComponentName name, IBinder service) {

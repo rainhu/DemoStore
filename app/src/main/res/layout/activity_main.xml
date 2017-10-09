@@ -75,6 +75,24 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:text="camera"/>
+
+            <Button
+                android:id="@+id/easyBrowserBtn"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="easyBrowser"/>
+
+            <Button
+                android:id="@+id/jniDemoBtn"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="jniDemo"/>
+
+            <Button
+                android:id="@+id/viewerBtn"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Viewer"/>
         </LinearLayout>
     </ScrollView>
 

@@ -132,7 +132,6 @@ public class MediaDemoActivity extends Activity implements View.OnClickListener 
             //ActivityCompat.shouldShowRequestPermissionRationale(MediaDemoActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     123);
-
         }
 
         mProgressBar = (ProgressBar) findViewById(R.id.mediademo_processBar);

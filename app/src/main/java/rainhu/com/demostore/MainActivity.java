@@ -1,8 +1,11 @@
 
 package rainhu.com.demostore;
 
-import android.support.v4.app.Fragment;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
+import android.os.PowerManager;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -25,10 +28,13 @@ import rainhu.com.demostore.activity.AnimationActivity;
 import rainhu.com.demostore.activity.CameraTestActivity;
 import rainhu.com.demostore.activity.TempActivity;
 import rainhu.com.demostore.applock.AppLockActivity;
+import rainhu.com.demostore.EasyBrowser.EasyBrowserActivity;
+import rainhu.com.demostore.jniDemo.JniDemoActivity;
 import rainhu.com.demostore.mediademo.MediaDemoActivity;
 import rainhu.com.demostore.activity.StorageFillerActivity;
 import rainhu.com.demostore.powershot.PowershotActivity;
 import rainhu.com.demostore.binder.BinderDemoActivity;
+import rainhu.com.demostore.viewer.ViewerActivity;
 
 public class MainActivity extends AppCompatActivity {
     @InjectView(R.id.storageFillerBtn)
@@ -57,6 +63,17 @@ public class MainActivity extends AppCompatActivity {
 
     @InjectView(R.id.cameraBtn)
     Button cameraBtn;
+
+
+    @InjectView(R.id.easyBrowserBtn)
+    Button easyBrowserBtn;
+
+    @InjectView(R.id.jniDemoBtn)
+    Button jniDemoBtn;
+
+
+    @InjectView(R.id.viewerBtn)
+    Button viewBtn;
 
     //FrameLayout mFragmentContainer;
 
@@ -88,6 +105,14 @@ public class MainActivity extends AppCompatActivity {
 
         Slide slide = (Slide) TransitionInflater.from(this).inflateTransition(R.transition.activity_slide);
         getWindow().setExitTransition(slide);
+
+
+        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        PowerManager.WakeLock wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyWakelockTag");
+
+        wakeLock.acquire();
+
+
     }
 
     private void initToolBar() {
@@ -109,6 +134,9 @@ public class MainActivity extends AppCompatActivity {
             R.id.animationBtn,
             R.id.tempBtn,
             R.id.cameraBtn,
+            R.id.easyBrowserBtn,
+            R.id.jniDemoBtn,
+            R.id.viewerBtn,
     })
     public void pickView(View view){
         switch (view.getId()){
@@ -135,6 +163,15 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case R.id.cameraBtn:
                 startActivity(new Intent(this, CameraTestActivity.class));
+                break;
+            case R.id.easyBrowserBtn:
+                startActivity(new Intent(this, EasyBrowserActivity.class));
+                break;
+            case R.id.jniDemoBtn:
+                startActivity(new Intent(this, JniDemoActivity.class));
+                break;
+            case R.id.viewerBtn:
+                startActivity(new Intent(this, ViewerActivity.class));
                 break;
         }
     }

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="rainhu.com.demostore"
-    android:versionCode="1">
+    android:versionCode="1"
+    android:installLocation="auto">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -22,6 +23,8 @@
     <!--permission for camera-->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
 
     <application
         android:allowBackup="true"
@@ -102,6 +105,13 @@
 
         <activity android:name=".activity.OtaTestActivity"/>
 
+        <activity android:name=".EasyBrowser.EasyBrowserActivity"/>
+
+        <activity android:name=".jniDemo.JniDemoActivity"/>
+
+        <activity android:name=".jniDemo.LedActivity"/>
+
+        <activity android:name=".viewer.ViewerActivity"/>
     </application>
 
 </manifest>
