@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+     <group>
+       <item android:title="@string/drawer_tool">
+        <menu>
+           <item android:id="@+id/storagefiller"
+            android:title="@string/drawer_item_storage_filler"/>
+           <item android:id="@+id/mediademo"
+             android:title="@string/drawer_item_mediaprovider"/>
+        </menu>
+       </item>
+     </group>
+
+    <group >
+        <item android:title="@string/drawer_demo">
+            <menu>
+                <item android:id="@+id/cameratest"
+                    android:title="@string/drawer_item_camera_test"/>
+            </menu>
+        </item>
+    </group>
+
+</menu>

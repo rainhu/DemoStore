@@ -10,3 +10,5 @@
 /.idea/modules.xml
 /app/build.gradle
 /.idea/inspectionProfiles/
+.idea
+key.jks

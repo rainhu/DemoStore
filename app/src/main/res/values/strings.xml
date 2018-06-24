@@ -12,4 +12,38 @@
     <!-- app lock -->
     <string name="applock_loading">Loading ... </string>
 
+    <string name="appbar_scrolling_view_behavior" translatable="false">android.support.design.widget.AppBarLayout$ScrollingViewBehavior</string>
+
+    <string name="ttapplock_loading">Loading ... </string>
+
+    <string name="navigation_drawer_open">Open navigation draw</string>
+    <string name="navigation_drawer_close">Close navigation draw</string>
+
+    <!--Drawer -->
+    <string name="drawer_demo">Demo</string>
+    <string name="drawer_tool">Tool</string>
+    <string name="drawer_item_camera_test">CameraTest</string>
+    <string name="drawer_item_storage_filler">StorageFiller</string>
+    <string name="drawer_item_mediaprovider">MediaProvider</string>
+
+
+    <!-- scanner -->
+    <string name="synopsis">简介</string>
+    <string name="synopsis_instructions">
+        1.支持API14(Android4.0)及以上版本
+        \n2.支持自动对焦
+        \n3.支持精度及条码类型过滤
+        \n2.支持自定义布局、自定义扫描框
+        \n4.支持前后台横竖屏切换</string>
+    <string name="api_old">旧API</string>
+    <string name="api_new">新API</string>
+    <string name="local_image">本地图片</string>
+    <string name="scan">扫码</string>
+    <string name="scan_debug">扫码(DEBUG)</string>
+    <string name="flash_open">开启闪光灯</string>
+    <string name="flash_close">关闭闪光灯</string>
+
+    <string name="tips_scan">将二维码/条码放入框内，即可自动扫描</string>
+    <string name="tips_scan_debug">解析图像每秒%1$d帧，平均耗时%2$dms</string>
+
 </resources>
